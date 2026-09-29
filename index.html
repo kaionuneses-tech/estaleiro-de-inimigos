@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Estaleiro de Inimigos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Libre+Franklin:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#E9EDF1;--surface:#FFFFFF;--surface2:#F3F6F8;--ink:#15213A;--muted:#5A6577;--line:#D3DAE2;
+  --accent:#1D6A73;--accent-ink:#FFFFFF;--brass:#9C7020;--brass-soft:#F2E6CC;--danger:#B2372E;--ok:#2E7A4D;--warn:#9A6A08;
+  --shadow:0 1px 2px rgba(21,33,58,.06),0 4px 14px rgba(21,33,58,.06);
+  --display:"Pirata One","Georgia",serif;--body:"Libre Franklin",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;--bg:#0C131D;--surface:#142031;--surface2:#192740;--ink:#E2E8F0;--muted:#95A1B3;--line:#29394F;
+  --accent:#4DB0BA;--accent-ink:#0C131D;--brass:#D8A748;--brass-soft:#3A2F17;--danger:#E36B61;--ok:#5FBE84;--warn:#E0B24A;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);}}
+:root[data-theme="dark"]{
+  color-scheme:dark;--bg:#0C131D;--surface:#142031;--surface2:#192740;--ink:#E2E8F0;--muted:#95A1B3;--line:#29394F;
+  --accent:#4DB0BA;--accent-ink:#0C131D;--brass:#D8A748;--brass-soft:#3A2F17;--danger:#E36B61;--ok:#5FBE84;--warn:#E0B24A;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45;padding:0 16px}
+.wrap{max-width:1380px;margin:0 auto;padding-block:20px 60px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;border-bottom:2px solid var(--brass);padding-bottom:12px;margin-bottom:18px}
+header.top h1{font-family:var(--display);font-weight:400;font-size:2.6rem;line-height:1;margin:0;letter-spacing:.5px;text-wrap:balance}
+header.top p{margin:4px 0 0;color:var(--muted);max-width:62ch}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,.btn{font:inherit;font-weight:600;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;padding:7px 11px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.ghost{background:transparent}
+button.danger{color:var(--danger)}
+button.small{padding:3px 8px;font-size:12px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:20px;align-items:start}
+@media (max-width:1050px){.layout{grid-template-columns:1fr}.side{position:static!important}}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:grid;gap:14px;max-height:calc(100vh - 24px);overflow:auto;padding-bottom:4px}
+@media (max-width:1050px){.side{max-height:none;overflow:visible}}
+details.mod{background:var(--surface);border:1px solid var(--line);border-radius:8px;margin-bottom:12px;box-shadow:var(--shadow)}
+details.mod>summary{list-style:none;cursor:pointer;padding:12px 16px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+details.mod>summary::-webkit-details-marker{display:none}
+details.mod>summary h2{margin:0;font-size:15px;font-weight:700;letter-spacing:.2px}
+details.mod>summary .hint{color:var(--muted);font-size:12px}
+details.mod>summary::after{content:"▾";margin-left:auto;color:var(--muted);transition:transform .15s}
+details.mod:not([open])>summary::after{transform:rotate(-90deg)}
+.step{font-family:var(--mono);font-size:11px;color:var(--brass);letter-spacing:.8px;text-transform:uppercase}
+.body{padding:4px 16px 16px;display:grid;gap:14px}
+.grid{display:grid;gap:10px 12px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.grid.wide{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+label.f{display:grid;gap:3px;font-size:12px;color:var(--muted);font-weight:500}
+label.f>span{letter-spacing:.2px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface2);border:1px solid var(--line);border-radius:5px;padding:6px 8px;width:100%;min-width:0}
+input[type=number]{font-family:var(--mono)}
+input[type=checkbox]{width:auto;accent-color:var(--accent)}
+textarea{min-height:56px;resize:vertical}
+.sub{font-size:12px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);font-weight:700;margin:4px 0 -4px}
+.attrs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.attrs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.attr{border:1px solid var(--line);border-radius:6px;padding:8px;text-align:center;background:var(--surface2)}
+.attr b{display:block;font-size:11px;letter-spacing:1px;color:var(--muted)}
+.attr input{text-align:center;font-size:18px;font-weight:600;padding:4px;background:var(--surface)}
+.attr .mod{font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:600;margin-top:3px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 7px;font-size:12px;background:var(--surface2);cursor:pointer;user-select:none}
+.chip:has(input:checked){border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--surface))}
+.card{border:1px solid var(--line);border-radius:7px;padding:12px;background:var(--surface2);display:grid;gap:10px}
+.card-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card-h input.name{font-weight:600;flex:1 1 180px;background:var(--surface)}
+.pill{font-family:var(--mono);font-size:12px;border-radius:999px;padding:2px 9px;background:var(--brass-soft);color:var(--brass);white-space:nowrap;font-weight:600}
+.pill.teal{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
+.muted{color:var(--muted)}
+.note{font-size:12px;color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.feat-group{border-top:1px solid var(--line);padding-top:8px}
+.feat-group>summary{cursor:pointer;font-weight:600;padding:4px 0;display:flex;gap:8px;align-items:center}
+.feat{display:grid;grid-template-columns:auto 1fr;gap:4px 8px;padding:7px 4px;border-bottom:1px dashed var(--line)}
+.feat:last-child{border-bottom:0}
+.feat .fn{font-weight:600}
+.feat .fe{font-family:var(--mono);font-size:11px;color:var(--brass);margin-left:6px}
+.feat .fe.none{color:var(--muted)}
+.feat .ft{grid-column:2;font-size:12px;color:var(--muted)}
+.feat .fv{grid-column:2;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.feat .fv input{max-width:120px}
+.feat.on{background:color-mix(in srgb,var(--accent) 7%,transparent);border-radius:4px}
+/* result panel */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);overflow:hidden}
+.nd-hero{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;padding:16px;border-bottom:2px solid var(--brass);background:linear-gradient(180deg,var(--surface2),var(--surface))}
+.nd-big{font-family:var(--display);font-size:4rem;line-height:.9;color:var(--ink);grid-row:span 2}
+.nd-big small{display:block;font-family:var(--body);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:4px}
+.kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-self:end}
+.kv div{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600}
+.kv b{display:block;font-family:var(--mono);font-size:15px;color:var(--ink);letter-spacing:0;text-transform:none}
+.split{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}
+.split>div{padding:12px 14px}
+.split>div+div{border-left:1px solid var(--line)}
+.split h3{margin:0 0 2px;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.split .v{font-family:var(--display);font-size:2rem;line-height:1}
+.log{padding:10px 14px;font-size:12.5px;display:grid;gap:2px}
+.log h4{margin:10px 0 4px;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--brass)}
+.log h4:first-child{margin-top:0}
+.lr{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dotted var(--line);padding:2px 0}
+.lr span:last-child{font-family:var(--mono);white-space:nowrap;text-align:right}
+.lr.tot{font-weight:700;border-bottom:1px solid var(--ink)}
+.warns{padding:0 14px 12px;display:grid;gap:6px}
+.w{font-size:12px;border-left:3px solid var(--warn);background:color-mix(in srgb,var(--warn) 10%,transparent);padding:6px 8px;border-radius:0 4px 4px 0}
+.w.bad{border-color:var(--danger);background:color-mix(in srgb,var(--danger) 10%,transparent)}
+.w button{margin-top:4px}
+/* stat block */
+.sb{background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);padding:16px}
+.sb-name{font-family:var(--display);font-size:1.9rem;text-align:center;line-height:1.05;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;text-wrap:balance}
+.sb-hdr{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 10px;font-size:12px;border-top:2px solid var(--brass);border-bottom:2px solid var(--brass);padding:6px 0;margin-bottom:8px}
+.sb-hdr b{font-weight:700;letter-spacing:.3px}
+.sb-attrs{display:grid;grid-template-columns:repeat(6,1fr);text-align:center;font-size:12px;padding:6px 0;border-bottom:1px solid var(--brass);margin-bottom:6px}
+.sb-attrs b{display:block;font-size:11px;letter-spacing:1px;color:var(--brass)}
+.sb-attrs span{font-family:var(--mono)}
+.sb-sec{display:grid;grid-template-columns:92px 1fr;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.sb-sec:last-child{border-bottom:0}
+.sb-sec>h5{margin:0;font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--brass);font-weight:700}
+.sb-sec p{margin:0 0 5px}
+.sb-sec p:last-child{margin:0}
+.sb-sec em{font-style:normal;font-weight:700}
+@media (max-width:480px){.sb-sec{grid-template-columns:1fr;gap:2px}.sb-hdr{grid-template-columns:1fr 1fr}}
+table.ref{border-collapse:collapse;font-size:12px;width:100%;font-variant-numeric:tabular-nums}
+table.ref th,table.ref td{padding:3px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+table.ref th{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);position:sticky;top:0;background:var(--surface)}
+table.ref td:first-child,table.ref th:first-child{text-align:left}
+table.ref tr.hd td{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+table.ref tr.ho td{background:color-mix(in srgb,var(--brass) 14%,transparent)}
+table.ref tr.hf td{font-weight:700;outline:1.5px solid var(--ink);outline-offset:-1.5px}
+.tscroll{overflow-x:auto;max-height:360px;overflow-y:auto}
+.modal{position:fixed;inset:0;background:rgba(8,14,24,.55);display:grid;place-items:center;padding:16px;z-index:10}
+.modal>div{background:var(--surface);border-radius:10px;max-width:640px;width:100%;padding:18px;display:grid;gap:10px;max-height:90vh;overflow:auto}
+.modal h3{margin:0;font-family:var(--display);font-weight:400;font-size:1.6rem}
+.lib-item{display:flex;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:6px 0}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:6px;font-weight:600;z-index:20}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Estaleiro de Inimigos</h1>
+      <p>Monte inimigos do OP RPG módulo por módulo. O Nível de Desafio é recalculado a cada mudança, seguindo o passo a passo de <em>Criando um Inimigo</em> (Guia do Narrador 2.0, cap. 3.13), com todos os PV, CR, bônus de ataque e dano virtuais das características.</p>
+    </div>
+    <div class="toolbar">
+      <select id="presetSel" aria-label="Carregar exemplo"></select>
+      <button id="btnNew">Nova ficha</button>
+      <button id="btnLib">Biblioteca</button>
+      <button id="btnIO">Importar / exportar</button>
+    </div>
+  </header>
+  <div class="layout">
+    <main id="editor"></main>
+    <aside class="side" id="side">
+      <div class="panel" id="result"></div>
+      <div class="sb" id="statblock"></div>
+    </aside>
+  </div>
+</div>
+<div id="modalRoot"></div>
+
+<script>
+/* ============ DADOS DAS REGRAS ============ */
+const ND_LABELS=['0','1/8','1/4','1/2',...Array.from({length:30},(_,i)=>String(i+1))];
+const ND_VAL=ND_LABELS.map(l=>l.includes('/')?1/(+l.split('/')[1]):+l);
+// [prof, pp, CR, pvMin, pvMax, atk, dmgMin, dmgMax, CD]  — Guia do Narrador, "Estatísticas de Criatura por Nível de Desafio"
+const T=[
+[2,0,13,1,6,3,0,1,13],[2,0,13,7,10,3,2,3,13],[2,0,13,11,20,3,4,5,13],[2,0,13,21,30,3,6,8,13],
+[2,5,14,31,60,5,9,14,13],[2,10,15,56,85,5,15,20,13],[2,15,16,81,130,6,21,26,13],[2,20,16,121,170,6,27,32,14],
+[3,25,16,161,220,7,33,38,15],[3,30,17,201,260,7,39,44,15],[3,35,17,241,300,7,45,50,15],[3,40,17,281,440,8,51,56,16],
+[4,45,18,421,561,8,57,62,16],[4,50,18,542,650,8,63,68,16],[4,55,18,601,710,9,69,74,17],[4,60,18,661,770,9,75,80,17],
+[5,65,19,721,815,9,81,86,18],[5,70,19,766,860,10,87,92,18],[5,75,19,811,905,10,93,98,18],[5,80,19,856,950,10,99,104,18],
+[6,85,20,901,1010,11,105,110,19],[6,90,20,961,1070,11,111,116,19],[6,95,20,1021,1130,11,117,122,19],[6,100,20,1081,1300,11,123,140,19],
+[7,105,20,1201,1338,12,141,158,20],[7,110,20,1239,1375,12,159,176,20],[7,115,21,1276,1413,12,177,194,20],[7,120,21,1314,1450,13,195,212,21],
+[8,125,21,1351,1588,13,213,230,21],[8,130,21,1389,1625,13,231,248,21],[8,135,22,1426,1663,14,249,266,22],[8,140,22,1464,1700,14,267,284,22],
+[9,145,22,1501,1738,14,285,302,22],[9,150,23,1539,1850,15,303,320,23]
+].map(r=>({prof:r[0],pp:r[1],ca:r[2],hpMin:r[3],hpMax:r[4],atk:r[5],dmgMin:r[6],dmgMax:r[7],cd:r[8]}));
+const XP=[0,25,50,100,200,450,700,1100,1800,2300,2900,3900,5000,5900,7200,8400,10000,11500,13000,15000,18000,20000,22000,25000,33000,41000,50000,62000,75000,90000,105000,120000,135000,155000];
+const ATTRS=['FOR','DES','CON','SAB','PRE','VON'];
+const ATTR_NAME={FOR:'Força',DES:'Destreza',CON:'Constituição',SAB:'Sabedoria',PRE:'Presença',VON:'Vontade'};
+const DMG_TYPES=['Ácido','Contundente','Cortante','Elétrico','Energia','Fogo','Frio','Perfurante','Psíquico','Trovejante','Veneno','Verdadeiro'];
+const PHYS=['Contundente','Cortante','Perfurante'];
+const CONDS=['Agarrado','Amedrontado','Atordoado','Bêbado','Caído','Cego','Enfeitiçado','Enfraquecido','Envenenado','Estremecido','Exaustão','Impedido','Incapacitado','Inconsciente','Letárgico','Paralisado','Queimado','Sangramento','Sonolento','Sufocado','Surdo'];
+const SIZES={'Miúdo':{die:4,scale:1},'Pequeno':{die:6,scale:1},'Médio':{die:8,scale:1},'Grande':{die:10,scale:2},'Enorme':{die:12,scale:3},'Imenso':{die:20,scale:4}};
+const SKILLS=[['Acrobacia','DES'],['Atletismo','FOR'],['Atuação','PRE'],['Enganação','PRE'],['Furtividade','DES'],['Haki','VON'],['História','SAB'],['Intimidação','PRE'],['Intuição','VON'],['Investigação','SAB'],['Medicina','SAB'],['Natureza','SAB'],['Percepção','VON'],['Persuasão','PRE'],['Prestidigitação','DES'],['Provocação','PRE'],['Sobrenatural','VON'],['Sobrevivência','SAB'],['Sorte','VON']];
+// multiplicadores de PV virtual por faixa de ND pretendido
+const HP_MULT=[{max:4,res:2,inv:2,logia:3},{max:10,res:1.5,inv:2,logia:2.5},{max:16,res:1.25,inv:1.5,logia:2},{max:99,res:1,inv:1.25,logia:1.5}];
+const WEAPONS=[
+ {n:'Ataque Desarmado',kind:'melee',wt:'unarmed',attr:'FOR',dn:1,die:4,type:'Contundente',reach:'alcance 1,5 metro',scale:false},
+ {n:'Sabre',kind:'melee',wt:'weapon',attr:'FOR',dn:1,die:6,type:'Cortante',reach:'alcance 1,5 metro',scale:true},
+ {n:'Katana',kind:'melee',wt:'weapon',attr:'FOR',dn:1,die:8,type:'Cortante',reach:'alcance 1,5 metro',scale:true},
+ {n:'Adaga',kind:'melee',wt:'weapon',attr:'DES',dn:1,die:4,type:'Perfurante',reach:'alcance 1,5 metro',scale:true},
+ {n:'Machado Grande',kind:'melee',wt:'weapon',attr:'FOR',dn:1,die:12,type:'Cortante',reach:'alcance 1,5 metro',scale:true},
+ {n:'Nodachi',kind:'melee',wt:'weapon',attr:'FOR',dn:2,die:6,type:'Cortante',reach:'alcance 3 metros',scale:true},
+ {n:'Pistola',kind:'ranged',wt:'weapon',attr:'DES',dn:1,die:6,type:'Contundente',reach:'distância 9/15 metros',scale:true},
+ {n:'Mosquete',kind:'ranged',wt:'weapon',attr:'DES',dn:1,die:8,type:'Contundente',reach:'distância 18/24 metros',scale:true},
+ {n:'Mordida',kind:'melee',wt:'natural',attr:'FOR',dn:2,die:10,type:'Perfurante',reach:'alcance 1,5 metro',scale:false},
+ {n:'Garras',kind:'melee',wt:'natural',attr:'FOR',dn:2,die:8,type:'Cortante',reach:'alcance 1,5 metro',scale:false},
+];
+
+/* ============ CATÁLOGO DE CARACTERÍSTICAS ============
+ e: efeitos no ND. Tipos:
+  ca(v) CR virtual | atk(v) bônus de ataque virtual | hpPct(v,max/min ND) | hpMul(v) | hp3x (3× valor informado)
+  dmg (valor por rodada) | dmgR1 (valor só 1ª rodada) | dmgX2 (valor × 2 alvos) | dmgPct(v) | r1x2 (dobra dano da 1ª rodada)
+  nd(v,max) | ndLvl (valor = níveis) | xdice(scope) extra dados de arma | flat(v) dano fixo por ataque corpo a corpo
+ slot: onde aparece na ficha (asp, bon, pod, rea, len, acao)
+ val: rótulo do valor pedido */
+const G_ASP='Aspectos',G_BON='Ações Bônus',G_POD='Ações Poderosas',G_REA='Reações',G_LEN='Características Lendárias',G_MAN='Vistas nas fichas do Manual dos Inimigos';
+const F=[];
+function f(g,id,n,slot,e,t,val,extra){F.push(Object.assign({g,id,n,slot,e:e||[],t,val},extra||{}))}
+// Aspectos
+f(G_ASP,'absEle','Absorção de Eletricidade','asp',0,'Sempre que for alvo de dano Elétrico, não sofre dano e recupera PV igual ao dano Elétrico recebido.');
+f(G_ASP,'agarrador','Agarrador','asp',0,'Vantagem nas jogadas de ataque (comum) contra qualquer criatura agarrada por ela.');
+f(G_ASP,'andarTeias','Andar em Teias','asp',0,'Ignora as restrições de movimento causadas por teias.');
+f(G_ASP,'andarGelo','Andar no Gelo','asp',0,'Move-se em superfícies congeladas sem Teste de Atributo; terreno difícil de gelo ou neve não custa movimento extra.');
+f(G_ASP,'anfibio','Anfíbio','asp',0,'Pode respirar ar e água.');
+f(G_ASP,'aparFalsa','Aparência Falsa','asp',0,'Enquanto permanecer imóvel, é indistinguível de um objeto ou estrutura.');
+f(G_ASP,'atqSurpresa','Ataque Surpresa','asp',0,'Se surpreender um alvo e atingi-lo durante a primeira rodada do encontro, o alvo sofre dano extra nesse ataque.','dano extra (texto)',{txtVal:true});
+f(G_ASP,'audAg','Audição Aguçada','asp',0,'Vantagem em Testes de Vontade (Percepção) relacionados à audição.');
+f(G_ASP,'auraMedo','Aura de Medo','asp',[['hpPct',25,{max:11}]],'Alvos hostis que começam o turno a até 6 m fazem Salvaguarda de Presença ou ficam Amedrontados até o início do próximo turno. Sucesso: imune por 24 h.');
+f(G_ASP,'brutamontes','Brutamontes','asp',[['xdice','mw']],'Um ataque corpo a corpo com arma/desarmado causa dados extras de dano quando atinge (incluso no ataque).','nº de dados extras (1 ou 2)');
+f(G_ASP,'cabecaDura','Cabeça Dura','asp',0,'Vantagem em Salvaguardas para não receber a condição "Atordoado".');
+f(G_ASP,'camuflagem','Camuflagem','asp',0,'Vantagem em Testes de Destreza (Furtividade) relacionados à pele ou pelugem, em um ambiente.');
+f(G_ASP,'carapaca','Carapaça Reflexiva','asp',[['hpPct',25]],'Contra projéteis com jogada de ataque à distância, role 1d6: 1–5 não é afetada; 6 não é afetada e reflete o ataque no atacante.');
+f(G_ASP,'carnivoro','Carnívoro Voraz','asp',0,'Alvo Médio ou menor de carne reduzido a 0 PV por ela é devorado.');
+f(G_ASP,'corpoIndom','Corpo Indomável','asp',0,'Vantagem em Salvaguardas contra Amedrontado, Atordoado, Enfeitiçado, Envenenado, Paralisado ou posto para dormir.');
+f(G_ASP,'corpoInerte','Corpo Inerte','asp',0,'Vantagem na Salvaguarda para não ser empurrada.');
+f(G_ASP,'corpoMin','Corpo Minúsculo','asp',0,'Vantagem em Salvaguardas e Testes de Atributo de Destreza.');
+f(G_ASP,'corpoRes','Corpo Resistente (Guia)','asp',[['hpMul',2]],'Contra ataque corpo a corpo, role 1d6: 4–5 não é afetada; 6 não é afetada e metade do dano volta ao atacante.');
+f(G_ASP,'couroFarpado','Couro Farpado','asp',[['dmg']],'No começo de cada turno causa dano Perfurante a quem a agarra ou está agarrado por ela.','dano (ex.: 6d8)');
+f(G_ASP,'ecoLoc','Eco Localização','asp',0,'Não pode usar percepção às cegas enquanto estiver surda.');
+f(G_ASP,'emboscador','Emboscador','asp',[['atk',1]],'Vantagem nas jogadas de ataque (comum) contra qualquer criatura que tenha surpreendido.');
+f(G_ASP,'enxame','Enxame','asp',0,'Ocupa o espaço de outras criaturas e passa por aberturas de inseto Miúdo. Não recupera PV nem ganha PV temporários.');
+f(G_ASP,'escaladaAr','Escalada Aracnídea','asp',0,'Escala superfícies difíceis, incluindo tetos de cabeça para baixo, sem Teste.');
+f(G_ASP,'escalada','Escalada','asp',0,'Escala superfícies difíceis sem Teste de Atributo.');
+f(G_ASP,'escavador','Escavador','asp',0,'Escava rocha sólida com metade do deslocamento de escavação, deixando túnel de 4,5 m.');
+f(G_ASP,'estabilidade','Estabilidade','asp',0,'Vantagem em Salvaguardas de Força e Destreza contra efeitos que a derrubem.');
+f(G_ASP,'evasao','Evasão','asp',[['ca',2]],'Em efeitos com Salvaguarda para metade do dano: sucesso = nenhum dano; falha = metade.');
+f(G_ASP,'faro','Faro Aguçado','asp',0,'Vantagem em Testes de Vontade (Percepção) relacionados ao olfato.');
+f(G_ASP,'fedor','Fedor','asp',[['ca',1]],'Quem começa o turno a até 1,5 m faz Salvaguarda de Constituição ou fica Envenenado até o início do próximo turno.');
+f(G_ASP,'ferimento','Ferimento Enfurecedor','asp',[['dmgPct',10]],'Com menos da metade dos PV: vantagem em ataques (comum) e dano extra nos ataques corpo a corpo.','dano extra (texto)',{txtVal:true});
+f(G_ASP,'frenesi','Frenesi de Sangue','asp',[['atk',4]],'Vantagem nos ataques (comum) corpo a corpo contra criaturas que não estejam com todos os PV.');
+f(G_ASP,'furia','Fúria','asp',0,'Com menos da metade dos PV, role 1d6 no início do turno; no 6 entra em fúria e ataca o alvo mais próximo até recuperar todos os PV.');
+f(G_ASP,'implacavel','Implacável','asp',0,'Dano que a reduziria a 0 PV a deixa com 1 PV. Recarrega em descanso curto ou longo.');
+f(G_ASP,'luz','Luz Própria','asp',0,'Ilumina esfera de 6 m com luz direta e mais 3 m de penumbra.');
+f(G_ASP,'cerco','Monstro de Cerco','asp',0,'Causa o dobro do dano a objetos e estruturas.');
+f(G_ASP,'movLivre','Movimentação Livre','asp',0,'Ignora terreno difícil e efeitos não reduzem seu deslocamento. Gasta 1,5 m para escapar de impedimentos ou agarrão.');
+f(G_ASP,'natRobo','Natureza Robótica','asp',0,'Não precisa respirar, comer, beber ou dormir.');
+f(G_ASP,'peleEsc','Pele Escorregadia','asp',0,'Quem tenta agarrá-la tem desvantagem.');
+f(G_ASP,'percCegas','Percepção às Cegas','asp',0,'Percebe os arredores sem visão num raio de 9 m.');
+f(G_ASP,'planar','Planar','asp',0,'Com as asas livres, não sofre dano de queda.');
+f(G_ASP,'prenderResp','Prender a Respiração','asp',0,'Prende a respiração por 1 hora.');
+f(G_ASP,'presAterr','Presença Aterradora','asp',[['hpPct',25,{max:10}]],'Alvos a até 18 m que a vejam fazem Salvaguarda de Presença ou ficam Amedrontados por 1 minuto (repete no fim do turno).');
+f(G_ASP,'presLider','Presença de Líder','asp',0,'Aliados a até 9 m que a vejam somam 1d8 em jogadas de acerto e Salvaguardas. Termina se estiver Incapacitada.');
+f(G_ASP,'reativo','Reativo','asp',0,'Pode realizar uma reação em cada turno de um combate.');
+f(G_ASP,'reflexo','Reflexo','asp',[['ca',2]],'Ataques (comum) contra ela têm desvantagem. Interrompido até o fim do próximo turno ao ser atingida, ou se Incapacitada/deslocamento 0.');
+f(G_ASP,'respAgua','Respirar na Água','asp',0,'Pode respirar apenas embaixo d\'água.');
+f(G_ASP,'saltoParado','Salto Parado','asp',0,'Salto em distância de 15 m e em altura de 9 m, com ou sem corrida.');
+f(G_ASP,'sentAg','Sentidos Aguçados','asp',0,'Vantagem em Percepção por audição, olfato e visão.');
+f(G_ASP,'sobrevoo','Sobrevoo','asp',0,'Não provoca Ataque de Oportunidade ao voar para fora do alcance de um inimigo.');
+f(G_ASP,'taticasBando','Táticas de Bando','asp',[['atk',1]],'Vantagem nos ataques (comum) se um aliado não incapacitado estiver a 1,5 m do alvo.');
+f(G_ASP,'vantMarcial','Vantagem Marcial','asp',[['dmg']],'Uma vez por turno, dano extra num ataque com arma se o alvo estiver a 1,5 m de um aliado não incapacitado.','dano extra (ex.: 2d6)');
+f(G_ASP,'visaoAg','Visão Aguçada','asp',0,'Vantagem em Testes de Vontade (Percepção) relacionados à visão.');
+f(G_ASP,'visaoNot','Visão Noturna','asp',0,'Enxerga no escuro num raio de 18 m, em tons de cinza.');
+// Ações bônus
+f(G_BON,'agarrarCauda','Agarrar com a Cauda','bon',[['atk',1]],'Ação bônus: ataque desarmado com a cauda; se acertar, o alvo fica agarrado e ela tem vantagem nos ataques corpo a corpo contra ele.');
+f(G_BON,'agressivo','Agressivo','bon',0,'Ação bônus: move-se até metade do deslocamento até um alvo hostil que possa ver.');
+f(G_BON,'chefe','Chefe (Compostura de Oficial / Líder Pirata)','bon',0,'5/dia: ao errar ataque ou falhar Teste/Salvaguarda, soma o nº de aliados visíveis a até 9 m (máx. +10).');
+f(G_BON,'furtSombria','Furtividade Sombria','bon',[['ca',2]],'Na penumbra ou escuridão pode "Esconder-se" com ação bônus.');
+f(G_BON,'multMembros','Múltiplos Membros','bon',0,'Ação bônus: uma jogada de ataque (comum) extra, se não usou "Atacar", "Usar um Objeto" ou "Guardar e Sacar".');
+// Ações poderosas
+f(G_POD,'ataqueAsas','Ataque com Asas','pod',[['dmg']],'Alvos a até 6 m fazem Salvaguarda de Destreza ou sofrem dano Contundente e ficam Caídos. Depois voa metade do deslocamento.','dano (ex.: 6d6)');
+f(G_POD,'mergulho','Ataque de Mergulho','pod',[['dmgR1']],'Mergulhando 6 m em linha reta e acertando corpo a corpo, causa dano extra.','dano extra (1ª rodada)');
+f(G_POD,'boteSonico','Bote Sônico','pod',[['dmgR1']],'Após 6 m em linha reta, investe com ataque corpo a corpo com dano extra; Salvaguarda de Força ou cai. Não provoca AdO.','dano extra (1ª rodada)');
+f(G_POD,'bote','Bote','pod',[['dmgR1']],'Move 6 m e ataca: Salvaguarda de Força ou Caído; se cair, ataque extra com ação bônus.','dano do ataque extra (1ª rodada)');
+f(G_POD,'corteSang','Corte Sangrento','pod',0,'1×/turno, ao acertar com arma cortante: Salvaguarda de Constituição ou Sangramento. 5/dia.');
+f(G_POD,'cuspirVen','Cuspir Veneno','pod',0,'Ataque à distância (6 m): Salvaguarda de Constituição ou Envenenado por 1 minuto.');
+f(G_POD,'descuidado','Descuidado / Justiça Cega','pod',0,'No início do turno ganha vantagem nos ataques (comum) corpo a corpo, mas ataques contra ela têm vantagem até o próximo turno.');
+f(G_POD,'impactoAt','Impacto Atordoante','pod',[['atk',3]],'1×/rodada, ao causar dano Contundente: Salvaguarda de Constituição ou Atordoado até o fim do próximo turno.');
+f(G_POD,'inflar','Inflar','pod',0,'Aumenta o tamanho para Enorme e não recebe dano de queda.');
+f(G_POD,'investDerrub','Investida Derrubadora','pod',[['dmgR1']],'Move 3 m e ataca corpo a corpo com dano Contundente extra; Salvaguarda de Força ou empurrado 6 m e Caído.','dano extra (1ª rodada)');
+f(G_POD,'investida','Investida','pod',[['dmgR1']],'Move 3 m (6 m nas fichas) e ataca corpo a corpo com dano extra.','dano extra (1ª rodada)');
+f(G_POD,'rajadaAcido','Rajada de Ácido','pod',[['dmgR1']],'Linha de 9 m × 1,5 m: Salvaguarda de Destreza, dano de Ácido (metade no sucesso). Recarga 6.','dano (1ª rodada)');
+f(G_POD,'soltarTinta','Soltar Tinta','pod',0,'Cone de 6 m: Salvaguarda de Destreza ou Cego até limpar a tinta.');
+f(G_POD,'teia','Teia','pod',[['ca',1]],'Ataque à distância (9/18 m) contra alvo Grande ou menor: Impedido pela teia (CR 10, 5 PV). Recarga 5–6.');
+// Reações
+f(G_REA,'apanharPedra','Apanhar Pedra','rea',0,'Com Salvaguarda de Força, apanha pedras grandes sem sofrer dano.');
+f(G_REA,'aparar','Aparar','rea',[['ca',1]],'Soma 5 à CR contra um ataque que a atingiria. Precisa ver o atacante e empunhar arma.');
+f(G_REA,'aoSup','Ataque de Oportunidade Superior','rea',[['atk',2]],'Quando um alvo sai do alcance voluntariamente, ataca; se acertar, o deslocamento do alvo vira 0 até o fim da rodada.');
+f(G_REA,'aoTraic','Ataque de Oportunidade Traiçoeiro','rea',[['atk',3]],'Ataque de oportunidade quando um inimigo entra ou sai do seu alcance.');
+f(G_REA,'aoOrg','Ataque de Oportunidade Orgulhoso','rea',[['atk',2]],'Se um alvo a 1,5 m atacar outra criatura, ela ataca corpo a corpo.');
+f(G_REA,'ao','Ataque de Oportunidade','rea',[['atk',1]],'Ataque corpo a corpo quando um inimigo visível sai do seu alcance voluntariamente.');
+f(G_REA,'defletir','Defletir Projéteis','rea',[['ca',2]],'Empunhando arma corpo a corpo, reduz em 4d10 o dano dos projéteis de um turno.');
+f(G_REA,'redirecionar','Redirecionar Ataque / Ordem Cruel','rea',0,'Troca de lugar com um aliado de ND menor a até 1,5 m (Ordem Cruel: 6 m), que se torna o alvo do ataque.');
+f(G_REA,'casco','Casco Protetor','rea',[['ca',2]],'Entra no casco: +5 na CR, fica Incapacitada com deslocamento 0. Sai com uma ação.');
+// Lendárias
+f(G_LEN,'auraDesg','Aura Desgastante','asp',[['nd',1]],'Personagens de ND ≤ ao dela que terminem o turno a até 9 m perdem 2 PP.');
+f(G_LEN,'corpoLend','Corpo Lendário','asp',[['hpPct',25,{min:13}]],'No máximo 100 de dano por vez; o excedente é desconsiderado.');
+f(G_LEN,'defFocada','Defesa Focada','asp',0,'CR 30, reduzida em 3 por inimigo não incapacitado a até 6 m (pode ter um mínimo).');
+f(G_LEN,'entrada','Entrada Impactante','asp',[['dmgR1']],'O primeiro ataque corpo a corpo do encontro acerta automaticamente, dobra os dados e Atordoa.','dano extra (dados dobrados)');
+f(G_LEN,'presSufoc','Presença Sufocante','asp',[['ndLvl']],'Personagens de ND ≤ ao dela, em seu turno a até 9 m, sofrem os efeitos de Exaustão.','níveis de Exaustão (1–3)');
+f(G_LEN,'regeneracao','Regeneração / Recuperação','asp',[['hp3x']],'Recupera PV no início de cada turno se tiver ao menos 1 PV.','PV por rodada');
+f(G_LEN,'resLend','Resistência Lendária','asp',[['hpPct',10]],'3/dia: ao falhar numa Salvaguarda, escolhe obter sucesso.');
+f(G_LEN,'negacao','Negação','asp',0,'Não pode ser forçada a falhar automaticamente; faz Salvaguarda de Vontade CD 15 para não falhar.');
+f(G_LEN,'usuarioRes','Usuário Resistente','asp',[['hpPct',25]],'Kairoseki só impede a concentração e as características/Técnicas da Akuma no Mi.');
+// Estilos de Combate
+const GE=s=>'Estilo de Combate · '+s;
+f(GE('Atirador'),'alvoMira','Alvo na Mira','bon',0,'Ação bônus: dobra o alcance normal da arma de fogo sem desvantagem na distância máxima.');
+f(GE('Atirador'),'olhoTreinado','Olho Treinado','asp',[['atk',2]],'Ataques à distância com arma ignoram meia-cobertura e cobertura de três quartos.');
+f(GE('Atirador'),'pistoleiro','Pistoleiro','asp',0,'Estar a 1,5 m de um hostil não impõe desvantagem nos ataques à distância.');
+f(GE('Atirador'),'tiroCerto','Tiro Certo','pod',[['dmg']],'Ação poderosa: ataque à distância; Salvaguarda de Constituição ou −3 m de movimento.','dano do disparo');
+f(GE('Aventureiro'),'danoMoral','Dano Moral','asp',0,'Dano de chicote pode virar Psíquico.');
+f(GE('Aventureiro'),'tiroImpac','Tiro Impaciente','pod',[['dmg']],'Ação poderosa: disparo com +1 dado por rodada passada (limite 2× ND, máx. 30).','dano médio por rodada');
+f(GE('Aventureiro'),'desarmar','Desarmar','bon',0,'Ataque visando a arma ou objeto do inimigo, puxando-o ou derrubando-o.');
+f(GE('Aventureiro'),'vigor','Vigor Inesgotável','asp',[['hpPct',10]],'Imune a Exaustão; ação poderosa encerra efeitos negativos (exceto Enfraquecido).');
+f(GE('Brutamontes'),'implacBr','Implacável (crítico letal)','pod',[['dmgPct',10]],'Em acerto crítico, role 1d12; no 12 o alvo cai a 0 PV.');
+f(GE('Brutamontes'),'golpesSang','Golpes Sanguinários','asp',0,'Ao reduzir um alvo a 0 PV, +3 de dano com kanabo (máx. +12) até o fim do encontro.');
+f(GE('Brutamontes'),'violencia','Violência Brutal','asp',0,'Em crítico, o dano atinge criaturas a até 6 m que falhem em Salvaguarda de Presença.');
+f(GE('Brutamontes'),'fome','Fome de Batalha','asp',[['hpPct',10]],'Recupera 1d6 PV a cada ataque bem-sucedido; 5d6 em crítico.');
+f(GE('Carateca Homem-Peixe'),'murasame','Murasame','asp',[['dmgR1']],'Em contato com grande fonte de água, ataques desarmados recebem dano extra.','dano extra (1ª rodada)');
+f(GE('Carateca Homem-Peixe'),'punhoGentil','Punho Gentil','rea',[['ca',2]],'3/dia, ao ser atingida corpo a corpo, não recebe dano.');
+f(GE('Carateca Homem-Peixe'),'punhoVapor','Punho de Vapor','pod',[['dmgX2']],'Ataque desarmado contra até 3 alvos a até 12 m. (ND considera 2 alvos atingidos.)','dano por alvo');
+f(GE('Carateca Homem-Peixe'),'socoVazio','Soco Vazio','asp',0,'Ataques desarmados com alcance de 9 m em linha e dano Verdadeiro.');
+f(GE('Ciborgue'),'corpoEst','Corpo Estendido','asp',0,'Alcance de toque de 6 m.');
+f(GE('Ciborgue'),'corpoMetal','Corpo Metálico','asp',[['dmg']],'Atacante corpo a corpo sem Haki do Armamento, que não passe a CR por 10+, recebe metade do dano de volta.','dano refletido por rodada');
+f(GE('Ciborgue'),'peleFerro','Pele de Ferro','asp',[['hpPct',15]],'Imune a projéteis médios ou menores.');
+f(GE('Ciborgue'),'visaoRob','Visão Robótica','asp',0,'Visão verdadeira em 12 m.');
+f(GE('Espadachim'),'caminhoEsp','Caminho da Espada','pod',[['dmg']],'1×/turno, ao acertar com arma cortante, ação poderosa para um ataque cortante extra.','dano do ataque extra');
+f(GE('Espadachim'),'cortePreciso','Corte Preciso','asp',[['xdice','slash',1]],'Ataque com arma cortante causa um dado extra de dano (incluso no ataque).');
+f(GE('Espadachim'),'critAprim','Crítico Aprimorado / Mira Fatal','asp',[['dmgPct',5]],'Margem de crítico 19–20.');
+f(GE('Espadachim'),'critBrutal','Crítico Brutal','asp',[['dmgPct',10]],'Rola um dado de arma adicional no dano de crítico com arma cortante.');
+f(GE('Guerrilheiro'),'aptidao','Aptidão Bélica','asp',0,'Sacar ou guardar armas não custa ação.');
+f(GE('Guerrilheiro'),'atqGirat','Ataque Giratório','pod',[['dmgX2']],'Usa a mesma jogada contra todos os alvos a até 3 m. (ND considera 2 alvos atingidos.)','dano por alvo');
+f(GE('Guerrilheiro'),'estrategista','Estrategista','asp',[['r1x2']],'1/dia: dois turnos na primeira rodada do encontro.');
+f(GE('Guerrilheiro'),'maestria','Maestria com Armas','asp',[['xdice','w',1]],'Ataques com arma causam um dado extra de dano (incluso).');
+f(GE('Lutador'),'destruidor','Destruidor de Paredes','asp',0,'Dano triplicado em estruturas (dobrado nas fichas).');
+f(GE('Lutador'),'explosao','Explosão','pod',[['dmg']],'Ação poderosa: ataque desarmado com dano extra.','dano extra');
+f(GE('Lutador'),'investLut','Investida / Voadora','bon',[['dmg']],'Move 3 m e ataca desarmado com dano extra; Salvaguarda de Força ou arremessado 6 m.','dano extra');
+f(GE('Lutador'),'retaliacao','Retaliação','rea',[['r1x2']],'1×/rodada, ao receber dano de alvo a 1,5 m, faz um ataque corpo a corpo contra ele.');
+f(GE('Ninja'),'atqFurtivo','Ataque Furtivo','pod',[['dmgR1']],'Ação poderosa: ataque com vantagem e dano extra.','dano extra (1ª rodada)');
+f(GE('Ninja'),'critSup','Crítico Superior','asp',[['dmgPct',10]],'Margem de crítico 18–20 com armas cortantes.');
+f(GE('Ninja'),'espAdagas','Especialista em Adagas','asp',0,'Sem desvantagem no alcance máximo de arremesso.');
+f(GE('Ninja'),'sentPerigo','Sentido de Perigo','asp',0,'Rola iniciativa duas vezes e não pode ser surpreendida.');
+f(GE('Okama Kenpo'),'assediador','Assediador','rea',[['atk',3]],'Se alvo a 1,5 m atacar outro ou sair do alcance, ataca; se acertar, o turno do alvo termina.');
+f(GE('Okama Kenpo'),'auraConf','Aura de Conforto','asp',0,'Criaturas a até 9 m têm vantagem em Salvaguardas de Constituição e Vontade.');
+f(GE('Okama Kenpo'),'superProt','Super Protetor','asp',0,'Ataques contra aliados a até 9 m têm desvantagem.');
+f(GE('Okama Kenpo'),'poderAmizade','Poder da Amizade','bon',[['hp3x']],'Recupera PV com dados iguais ao nº de aliados a até 9 m (máx. 10).','nº de dados × valor máximo do dado');
+f(GE('Rokushiki'),'geppo','Geppo','asp',0,'Deslocamento de voo igual ao normal, se não Incapacitada.');
+f(GE('Rokushiki'),'kamie','Kamie','rea',[['ca',2]],'Ao ser alvo de ataque, +3 na CR até o próximo turno.');
+f(GE('Rokushiki'),'soru','Soru','asp',[['atk',2]],'Primeiro ataque do turno com vantagem; deslocamento não provoca reações.');
+f(GE('Rokushiki'),'tekkai','Tekkai / Grande Problema','asp',[['hp3x']],'Reduz dano Contundente, Cortante ou Perfurante que possa ver.','pontos reduzidos');
+f(GE('Samurai'),'corteOrg','Corte Orgulhoso','asp',0,'Dano Cortante reduz os PV máximos do alvo até um descanso.');
+f(GE('Samurai'),'sunacchi','Sunacchi','asp',[['hpPct',25]],'Ao cair a 0 PV, levanta com metade dos PV e PP máximos.');
+f(GE('Samurai'),'concentracao','Concentração Total','bon',0,'3/dia: por 1 minuto, vantagem em ataques e Salvaguardas; ignora efeitos negativos (exceto Enfraquecido).');
+f(GE('Samurai'),'corteSamurai','Corte Samurai','pod',[['dmgR1']],'Ação poderosa: ataque desarmado com dano extra de qualquer tipo (exceto Psíquico/Verdadeiro).','dano extra (1ª rodada)');
+// Espécies
+const GS=s=>'Espécie · '+s;
+f(GS('Anões'),'pequenoGig','Pequeno Gigante','asp',0,'Proficiência em Salvaguardas e Testes de Força.');
+f(GS('Anões'),'misterioFadas','Mistério das Fadas','bon',[['ca',3]],'Pode "Esconder-se" com ação bônus mesmo à vista.');
+f(GS('Gigantes'),'forcaColossal','Força Colossal','asp',0,'Proficiência dobrada em Salvaguardas e Testes de Força.');
+f(GS('Gigantes'),'guerreiroNato','Guerreiro Nato','asp',[['flat',10]],'Todo ataque (comum) corpo a corpo causa +10 de dano (somado automaticamente aos ataques corpo a corpo).');
+f(GS('Homens-peixe'),'forcaSup','Força Superior','asp',0,'Proficiência + metade do bônus em Salvaguardas e Testes de Força.');
+f(GS('Homens-peixe'),'vincTele','Vínculo Telepático','asp',0,'Comunica-se com animais marinhos a até 30 m.');
+f(GS('Lunarianos'),'manipFogo','Manipulação do Fogo','pod',[['dmg']],'Ação poderosa: ataque com +2d10 de dano de Fogo.','dano extra (padrão 2d10)',{def:'2d10'});
+f(GS('Lunarianos'),'chamaDivina','Chama Divina','bon',[['nd',1]],'No início do turno: imune a dano (exceto Verdadeiro) e Incapacitada, ou vantagem em todos os ataques. 3 usos, depois ação poderosa + 4 PP.');
+f(GS('Minks'),'electro','Electro Dominado','pod',[['dmg']],'Ação poderosa: ataque com +2d10 de dano Elétrico.','dano extra (padrão 2d10)',{def:'2d10'});
+f(GS('Minks'),'sulong','Forma Sulong Dominada','asp',0,'Com lua cheia à vista: vantagem em ataques e Salvaguardas; ataques contra ela têm desvantagem.');
+// Haki (características)
+const GH=s=>'Haki · '+s;
+f(GH('Armamento'),'destrInt','Destruição Interior','asp',0,'As jogadas de dano se tornam dano Verdadeiro.');
+f(GH('Armamento'),'emissao','Emissão','pod',0,'Ação poderosa: ataque corpo a corpo com 2 dados extras e +1,5 m de alcance.');
+f(GH('Armamento'),'fortalecer','Fortalecer','asp',0,'Ataques ignoram resistências, invulnerabilidades e intangibilidade de Akuma no Mi.');
+f(GH('Armamento'),'imbuir','Imbuir','asp',[['dmg']],'Reveste corpo, armas e projéteis; ignora defesas de Akuma no Mi.','dano extra por rodada');
+f(GH('Armamento'),'protecao','Proteção','rea',0,'Reação: reduz o dano final em 10.');
+f(GH('Armamento'),'revestAbs','Revestimento Absoluto','bon',[['hpPct',25]],'Recarga 4–6. Por 1 minuto, resistência a todo dano (exceto Verdadeiro) e imune a efeitos de Akuma no Mi no corpo.');
+f(GH('Observação'),'percEsp','Percepção Espiritual','asp',0,'Percebe tudo em 15 m sem depender da visão.');
+f(GH('Observação'),'percExp','Percepção Expandida','rea',[['hpPct',10]],'Reação: transforma um acerto crítico recebido em acerto normal.');
+f(GH('Observação'),'sentirEmo','Sentir Emoções','asp',0,'Detecta emoções a até 15 m; imune a Surpreso.');
+f(GH('Observação'),'visaoFut','Visão do Futuro','bon',[['atk',3]],'5/dia: sucesso automático num ataque ou Salvaguarda, ou força um erro de outra criatura.');
+f(GH('Rei'),'infusao','Infusão','asp',[['dmgPct',5]],'Recarga 4–6. Em ataques corpo a corpo com d20 entre 15 e 19 (sem crítico), dano máximo.');
+f(GH('Rei'),'dominacao','Dominação','pod',0,'Intimida um animal que falhe em Salvaguarda de Vontade.');
+f(GH('Rei'),'incapacitacao','Incapacitação','acao',[['nd',2,{max:12}]],'Ação: desmaia criaturas à escolha a até 30 m que falhem em Salvaguarda de Vontade.');
+f(GH('Rei'),'intimidacao','Intimidação','bon',0,'Ação bônus: Amedrontado em criaturas a até 30 m que falhem em Salvaguarda de Vontade.');
+f(GH('Rei'),'liberacao','Liberação Magnífica','pod',0,'Recarga 3–6. Aura de 18 m que impede Técnicas e poderes de Akuma no Mi por 1 minuto.');
+// Vistas nas fichas do Manual
+f(G_MAN,'treinoCombate','Treino de Combate / Bucaneiro','asp',[['xdice','wu']],'Ataque com arma ou desarmado causa dados extras de dano (incluso no ataque). Equivale a Brutamontes no cálculo.','nº de dados extras');
+f(G_MAN,'crueldade','Crueldade Inata / Ataque Assassino','asp',[['dmg']],'Uma vez por turno, dano extra a uma criatura que atinja. Conta como dano adicional por rodada.','dano extra (ex.: 2d6)');
+f(G_MAN,'taticasMarc','Táticas Marciais','asp',[['atk',1]],'Vantagem nos ataques (comum) se um aliado não incapacitado estiver a 1,5 m do alvo (= Táticas de Bando).');
+f(G_MAN,'taticasAvanc','Táticas Marciais Avançadas','asp',[['atk',1],['dmg']],'Táticas Marciais + uma vez por turno dano extra num ataque corpo a corpo (= Táticas de Bando + Vantagem Marcial).','dano extra (ex.: 4d6)');
+f(G_MAN,'corpoResMan','Corpo Resistente (Manual)','asp',0,'Vantagem em Salvaguardas contra Amedrontado, Atordoado, Enfeitiçado, Envenenado, Paralisado ou Sonolento (= Corpo Indomável).');
+f(G_MAN,'resColossal','Resistência Colossal','asp',0,'Ignora dano e efeitos de Técnicas de Combate até certo grau. O Guia não define efeito no ND: use os Ajustes manuais se quiser pesar.','grau máximo ignorado (texto)',{txtVal:true});
+f(G_MAN,'tropas','Tropas Intermináveis / "Socorro!"','asp',0,'Ao morrer, rola um dado; em certos resultados surgem reforços no encontro.');
+f(G_MAN,'especArmas','Especialista em Armas / Arte da Espada','asp',0,'O dado de dano das armas muda (ex.: d12). Ajuste o dado direto no ataque para o cálculo.');
+f(G_MAN,'passosPrec','Passos Precisos','bon',0,'No início do turno, nenhuma criatura tem vantagem em ataques contra ela.');
+
+const FEAT_BY_ID=Object.fromEntries(F.map(x=>[x.id,x]));
+const EFF_LABEL={ca:v=>`CR virtual +${v}`,atk:v=>`ataque virtual +${v}`,hpPct:(v,o)=>`PV virtual +${v}%${o&&o.max?` (ND ≤ ${o.max})`:''}${o&&o.min?` (ND ≥ ${o.min})`:''}`,hpMul:v=>`PV virtual ×${v}`,hp3x:()=>'PV virtual +3× valor',dmg:()=>'soma ao dano',dmgR1:()=>'dano na 1ª rodada',dmgX2:()=>'dano × 2 alvos',dmgPct:v=>`dano virtual +${v}%`,r1x2:()=>'dobra dano da 1ª rodada',nd:(v,o)=>`ND +${v}${o&&o.max?` (ND ≤ ${o.max})`:''}`,ndLvl:()=>'ND +1 por nível',xdice:()=>'dados extras no ataque',flat:v=>`+${v} por ataque c/c`};
+function effText(ft){if(!ft.e.length)return'(–)';return ft.e.map(([t,v,o])=>EFF_LABEL[t](v,o)).join(' · ')}
+
+/* ============ UTILITÁRIOS ============ */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const mod=v=>Math.floor((+v-10)/2);
+const sg=n=>(n>=0?'+':'')+n;
+const fmt=n=>Math.round(n).toLocaleString('pt-BR');
+const uid=()=>Math.random().toString(36).slice(2,9);
+function diceAvg(s){ // "4d6+2", "2d10", "11"
+  if(s===undefined||s===null||s==='')return 0; if(typeof s==='number')return s;
+  let tot=0; const str=String(s).replace(/\s/g,'').replace(/−/g,'-');
+  const re=/([+-]?)(\d*)d(\d+)|([+-]?)(\d+(?:[.,]\d+)?)/gi; let m;
+  while((m=re.exec(str))){ if(m[3]){const sgn=m[1]==='-'?-1:1;tot+=sgn*(+(m[2]||1))*(+m[3]+1)/2}else if(m[5]){const sgn=m[4]==='-'?-1:1;tot+=sgn*parseFloat(m[5].replace(',','.'))}}
+  return tot;
+}
+function ndIdxNearest(v){let best=0,bd=1e9;ND_VAL.forEach((x,i)=>{const d=Math.abs(x-v);if(d<bd-1e-9||(Math.abs(d-bd)<1e-9&&i>best)){bd=d;best=i}});return best}
+const clampIdx=i=>Math.max(0,Math.min(ND_LABELS.length-1,i));
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),1800)}
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+/* ============ ESTADO ============ */
+function blank(){return{
+  name:'Novo Inimigo',size:'Médio',hdDie:'',type:'Humanoide',classif:'',dreams:'',ndTarget:6,
+  attrs:{FOR:10,DES:10,CON:10,SAB:10,PRE:10,VON:10},
+  speed:{walk:9,swim:4.5,fly:0,climb:0,burrow:0},
+  caMode:'natural',caNat:0,caManual:13,
+  hpMode:'dice',hd:4,hpManual:30,
+  res:[],inv:[],vul:[],logia:false,condImm:[],
+  saves:[],skills:{},senses:'',
+  cdAttr:'FOR',cdOverride:'',ppOverride:'',profMode:'target',
+  attacks:[],multi:[],techs:[],feats:{},custom:[],
+  haki:{arm:0,obs:0,rei:0},
+  leg:{count:0,atk:'',cost:1,extra:''},
+  adj:{ca:0,atk:0,hpPct:0,dmg:0,nd:0},
+  opt:{dmgMode:'melhor',useDC:false},
+  notes:''
+}}
+function atk(o){return Object.assign({id:uid(),name:'Ataque',kind:'melee',wt:'weapon',attr:'FOR',dn:1,die:6,flat:0,type:'Cortante',reach:'alcance 1,5 metro',scale:true,bonus:'',effect:''},o)}
+function tech(o){return Object.assign({id:uid(),name:'Técnica',cat:'combate',grau:1,pp:1,use:'livre',perDay:5,act:'poderosa',form:'ataque',attr:'FOR',dn:2,die:10,flat:0,type:'Contundente',targets:1,range:'alcance 1,5 metro, um alvo',saveAttr:'DES',effect:''},o)}
+
+/* ============ EXEMPLOS (fichas do Manual dos Inimigos) ============ */
+function presetSargento(){const s=blank();Object.assign(s,{name:'Sargento',type:'Humanoide',classif:'Marinha',size:'Médio',hdDie:12,ndTarget:5,hd:9,caMode:'manual',caManual:15,cdAttr:'FOR',
+ attrs:{FOR:16,DES:14,CON:15,SAB:10,PRE:10,VON:10},speed:{walk:12,swim:12,fly:0,climb:0,burrow:0},saves:['FOR','DES','CON'],skills:{Atletismo:1,'Percepção':1,'Sobrevivência':1}});
+ const a1=atk({name:'Ataque Desarmado',wt:'unarmed',dn:1,die:4,type:'Contundente',scale:false}),a2=atk({name:'Sabre',dn:1,die:6}),a3=atk({name:'Pistola',kind:'ranged',attr:'DES',dn:1,die:6,type:'Contundente',reach:'distância 9/15 metros'}),a4=atk({name:'Mosquete',kind:'ranged',attr:'DES',dn:1,die:8,type:'Contundente',reach:'distância 18/24 metros'});
+ s.attacks=[a1,a2,a3,a4];s.multi=[{atk:a2.id,times:2}];
+ s.feats={investida:{val:'3d6'},taticasMarc:{},redirecionar:{}};
+ s.techs=[tech({name:'Golpe Poderoso',grau:1,pp:1,dn:2,die:10,type:'Contundente, Cortante ou Perfurante'})];return s}
+function presetEspadachim(){const s=blank();Object.assign(s,{name:'Pirata Espadachim',type:'Humanoide',classif:'Pirata',size:'Médio',hdDie:10,ndTarget:8,hd:26,caMode:'manual',caManual:17,cdAttr:'FOR',
+ attrs:{FOR:18,DES:17,CON:17,SAB:12,PRE:14,VON:16},speed:{walk:12,swim:12,fly:0,climb:0,burrow:0},saves:['FOR','DES'],skills:{Acrobacia:1,Atletismo:1,'Intimidação':1,'Provocação':1},senses:''});
+ const a1=atk({name:'Ataque Desarmado',wt:'unarmed',dn:1,die:6,type:'Contundente',scale:false}),a2=atk({name:'Sabre',dn:1,die:6});
+ s.attacks=[a1,a2];s.multi=[{atk:a2.id,times:3}];
+ s.feats={treinoCombate:{val:'1'},crueldade:{val:'2d6'},aparar:{},ao:{}};
+ s.techs=[tech({name:'Vento Cortante',grau:1,pp:1,form:'area',dn:2,die:6,type:'Cortante',targets:2,range:'12 metros (Cone)',saveAttr:'DES'}),
+          tech({name:'Lua Cortante',grau:2,pp:3,form:'area',dn:4,die:8,type:'Cortante',targets:2,range:'9 metros de comprimento e 1,5 metro de largura (Linha)',saveAttr:'DES'})];return s}
+function presetAgente(){const s=blank();Object.assign(s,{name:'Agente',type:'Humanoide',classif:'Cipher Pol',size:'Médio',hdDie:12,ndTarget:7,hd:17,caMode:'manual',caManual:16,cdAttr:'DES',
+ attrs:{FOR:17,DES:16,CON:16,SAB:18,PRE:14,VON:12},speed:{walk:12,swim:12,fly:0,climb:0,burrow:0},saves:['FOR','DES'],skills:{Atletismo:1,Furtividade:2,'Percepção':1}});
+ const a1=atk({name:'Ataque Desarmado',wt:'unarmed',dn:2,die:6,type:'Contundente',scale:false}),a2=atk({name:'Pistola',kind:'ranged',attr:'DES',dn:2,die:6,type:'Contundente',reach:'distância 9/15 metros'});
+ s.attacks=[a1,a2];s.multi=[{atk:a1.id,times:2}];
+ s.feats={atqSurpresa:{val:'2 dados de dano extra'},emboscador:{}};
+ s.techs=[tech({name:'Soru',cat:'auxiliar',pp:2,act:'bonus',form:'aux',dn:0,effect:'Aumenta explosivamente a velocidade: +6 m de deslocamento até o próximo turno, sem provocar reações, e a próxima jogada de ataque recebe vantagem.'}),
+          tech({name:'Tekkai',cat:'auxiliar',pp:2,act:'reacao',form:'aux',dn:0,effect:'Deslocamento reduzido a 0; protege-se de dano Contundente, Cortante ou Perfurante com 6d10 PV temporários até o início do próximo turno.'}),
+          tech({name:'Shigan',grau:1,pp:1,dn:2,die:10,type:'Perfurante'}),
+          tech({name:'Rankyaku',grau:2,pp:4,form:'area',dn:3,die:6,type:'Contundente, Cortante ou Perfurante',targets:2,range:'15 metros (Cone)',saveAttr:'DES',effect:'O dano causado por essa técnica é dobrado em estruturas.'})];return s}
+function presetPacifista(){const s=blank();Object.assign(s,{name:'PX Series',type:'Máquina',classif:'Pacifista',size:'Grande',hdDie:12,ndTarget:16,hd:78,caMode:'manual',caManual:20,cdAttr:'CON',
+ attrs:{FOR:20,DES:19,CON:19,SAB:10,PRE:10,VON:10},speed:{walk:12,swim:12,fly:0,climb:0,burrow:0},saves:['FOR','CON'],skills:{Atletismo:1,'Percepção':1},
+ res:['Contundente','Cortante','Perfurante'],inv:['Psíquico','Veneno'],condImm:['Amedrontado','Bêbado','Enfeitiçado','Envenenado','Exaustão','Paralisado','Queimado','Sangramento','Sonolento'],senses:'Visão no Escuro (18 metros)'});
+ const a1=atk({name:'Ataque Desarmado',wt:'unarmed',dn:1,die:12,type:'Contundente',scale:false}),a2=atk({name:'Laser de Mão',kind:'ranged',wt:'natural',attr:'—',bonus:9,dn:4,die:10,type:'Energia',reach:'distância 9/15 metros',scale:false});
+ s.attacks=[a1,a2];s.multi=[{atk:a1.id,times:3}];
+ s.feats={absEle:{},corpoMetal:{val:''},movLivre:{},natRobo:{},ao:{}};
+ s.techs=[tech({name:'Laser Palm',grau:4,pp:6,use:'dia',perDay:5,dn:8,die:10,type:'Energia',effect:'A criatura atingida deve ser bem-sucedida em uma Salvaguarda de Constituição ou receberá a condição "Queimado".'}),
+          tech({name:'Barragem de Laser',grau:5,pp:8,use:'dia',perDay:5,form:'area',dn:10,die:6,type:'Energia',targets:2,range:'30 metros (Cone)',saveAttr:'DES'}),
+          tech({name:'Laser de Boca',grau:6,pp:12,use:'rec56',form:'area',dn:10,die:8,type:'Energia',targets:2,range:'30 metros (Linha) e 1,5 metro de largura',saveAttr:'DES',effect:'O laser explode num ponto da área: Salvaguarda de Destreza a até 18 m, 21 (5d6) de dano de Fogo, metade no sucesso.'})];return s}
+function presetBananawani(){const s=blank();Object.assign(s,{name:'Bananawani',type:'Animal',classif:'Tipo C, Comum',size:'Enorme',hdDie:'',ndTarget:12,hd:40,caMode:'manual',caManual:18,cdAttr:'FOR',ppOverride:45,
+ attrs:{FOR:24,DES:11,CON:18,SAB:5,PRE:10,VON:11},speed:{walk:15,swim:12,fly:0,climb:0,burrow:0},saves:['FOR'],skills:{Atletismo:1}});
+ const a1=atk({name:'Garras',wt:'natural',dn:4,die:10,type:'Perfurante',reach:'alcance 3 metros',scale:false}),a2=atk({name:'Mordida',wt:'natural',dn:6,die:10,type:'Perfurante',reach:'alcance 3 metros',scale:false,effect:'Se o alvo for Grande ou menor, fica Agarrado (CD 16 para escapar) e Impedido; o bananawani não pode morder outro alvo.'});
+ s.attacks=[a1,a2];s.multi=[{atk:a2.id,times:1},{atk:a1.id,times:1}];
+ s.feats={frenesi:{},prenderResp:{}};
+ s.techs=[tech({name:'Engolir',cat:'especial',pp:0,use:'dia',perDay:3,dn:6,die:10,flat:7,type:'Perfurante',effect:'Contra alvo Grande ou menor agarrado. Se atingir, o alvo é engolido: Cego e Impedido, sofre 18 (5d6) de dano Ácido no início de cada turno do bananawani.'})];return s}
+const PRESETS=[['Pirata Espadachim (ND 5)',presetEspadachim],['Sargento da Marinha (ND 2)',presetSargento],['Agente da Cipher Pol (ND 4)',presetAgente],['PX Series, Pacifista (ND 13)',presetPacifista],['Bananawani (ND 9)',presetBananawani]];
+
+let S=store.get('opEnemyDraft')||presetEspadachim();
+S=Object.assign(blank(),S);
+
+/* ============ CÁLCULO ============ */
+function activeFeats(){const out=[];for(const id in S.feats){const ft=FEAT_BY_ID[id];if(ft)out.push({ft,val:S.feats[id].val})}
+  S.custom.forEach(c=>out.push({ft:{id:c.id,n:c.name,slot:c.slot,t:c.text,e:c.eff&&c.eff!=='none'?[[c.eff,+c.v||0]]:[],custom:true},val:c.val}));return out}
+function profOf(idx){return T[idx].prof}
+function sizeInfo(){return SIZES[S.size]||SIZES['Médio']}
+function hitDie(){return +S.hdDie||sizeInfo().die}
+function hpInfo(){const con=mod(S.attrs.CON);if(S.hpMode==='manual')return{hp:+S.hpManual||0,expr:''};
+  const n=+S.hd||0,d=hitDie();const hp=Math.max(1,Math.floor(n*(d+1)/2+n*con));const b=n*con;return{hp,expr:`${n}d${d}${b?(b>0?'+':'')+b:''}`}}
+function caReal(){return S.caMode==='manual'?(+S.caManual||0):10+mod(S.attrs.DES)+(+S.caNat||0)}
+function basicProf(res){return S.profMode==='final'&&res?profOf(res.finalIdx):profOf(S.ndTarget)}
+function attackCalc(a,prof,feats){
+  const scale=a.scale&&a.wt==='weapon'?sizeInfo().scale:1;
+  let extra=0,flat=0;const notes=[];
+  feats.forEach(({ft,val})=>ft.e.forEach(([t,v,sc])=>{
+    if(t==='xdice'){const n=typeof sc==='number'?sc:(+val||0);const scope=v;
+      const isW=a.wt==='weapon',isU=a.wt==='unarmed',mel=a.kind==='melee';
+      let ok=false;if(scope==='mw')ok=mel&&(isW||isU);else if(scope==='slash')ok=isW&&/Cortante/.test(a.type);else if(scope==='w')ok=isW;else if(scope==='wu')ok=isW||isU;
+      if(ok&&n){extra+=n;notes.push(`${ft.n} +${n}d`)}}
+    if(t==='flat'&&a.kind==='melee'){flat+=v;notes.push(`${ft.n} +${v}`)}
+  }));
+  const hk=[0,2,3,4][S.haki.arm||0];if(hk){extra+=hk;notes.push(`Haki do Armamento +${hk}d`)}
+  const m=a.attr==='—'?0:mod(S.attrs[a.attr]||10);
+  const dn=(+a.dn||0)*scale+extra, die=+a.die||0, fl=m+(+a.flat||0)+flat;
+  const avg=Math.max(0,Math.floor(dn*(die+1)/2+fl));
+  const bonus=a.bonus!==''&&a.bonus!==null&&a.bonus!==undefined?+a.bonus:prof+m;
+  return{dn,die,fl,avg,bonus,notes,scale}}
+function techCalc(t,prof){
+  const hk=t.form==='ataque'?[0,2,3,4][S.haki.arm||0]:0;
+  const dn=(+t.dn||0)+hk,die=+t.die||0,fl=+t.flat||0;
+  const one=Math.max(0,Math.floor(dn*(die+1)/2+fl));
+  const tg=t.form==='area'?Math.max(1,+t.targets||1):1;
+  const m=mod(S.attrs[t.attr]||10);
+  return{dn,die,fl,one,avg:t.form==='aux'?0:one*tg,tg,bonus:prof+m}}
+function cdValue(prof){return S.cdOverride!==''&&S.cdOverride!=null?+S.cdOverride:8+prof+mod(S.attrs[S.cdAttr]||10)}
+
+function compute(){
+  const tIdx=+S.ndTarget, tND=ND_VAL[tIdx];
+  const prof=profOf(tIdx);
+  const feats=activeFeats();
+  const R={logD:[],logO:[],warns:[],prof};
+  const E=[];feats.forEach(({ft,val})=>ft.e.forEach(e=>E.push({ft,val,t:e[0],v:e[1],o:e[2]})));
+  // ---------- DEFENSIVO ----------
+  const {hp,expr}=hpInfo();R.hp=hp;R.hpExpr=expr;
+  let hpV=hp;R.logD.push(['PV reais',fmt(hp)]);
+  const band=HP_MULT.find(b=>tND<=b.max);
+  const resAll=PHYS.every(x=>S.res.includes(x))||S.res.length>=3;
+  const invAll=PHYS.every(x=>S.inv.includes(x))||S.inv.length>=3;
+  let mult=1,mlab='';
+  if(resAll&&band.res>mult){mult=band.res;mlab='resistências'}
+  if(invAll&&band.inv>mult){mult=band.inv;mlab='invulnerabilidades'}
+  if(S.logia&&band.logia>mult){mult=band.logia;mlab='intangibilidade Logia'}
+  if(mult!==1){hpV*=mult;R.logD.push([`× ${String(mult).replace('.',',')} por ${mlab} (ND pretendido ${ND_LABELS[tIdx]})`,fmt(hpV)])}
+  else if(S.res.length||S.inv.length)R.logD.push(['Resistências/invulnerabilidades sem multiplicador (menos de 3 tipos ou sem C/C/P, ou faixa ND 17+)','×1']);
+  const vulAll=PHYS.every(x=>S.vul.includes(x))||S.vul.length>=3;
+  if(vulAll){hpV*=.5;R.logD.push(['× 0,5 por vulnerabilidades a vários tipos',fmt(hpV)])}
+  let pct=0;E.filter(e=>e.t==='hpPct').forEach(e=>{const o=e.o||{};if(o.max!==undefined&&tND>o.max){R.logD.push([`${e.ft.n}: sem efeito (ND pretendido > ${o.max})`,'—']);return}
+    if(o.min!==undefined&&tND<o.min){R.logD.push([`${e.ft.n}: sem efeito (ND pretendido < ${o.min})`,'—']);return}pct+=e.v;R.logD.push([`${e.ft.n}`,`+${e.v}%`])});
+  if(+S.adj.hpPct){pct+=+S.adj.hpPct;R.logD.push(['Ajuste manual de PV',`${sg(+S.adj.hpPct)}%`])}
+  if(pct){const base=hpV;hpV=hpV*(1+pct/100);R.logD.push([`Soma dos % sobre ${fmt(base)}`,fmt(hpV)])}
+  E.filter(e=>e.t==='hpMul').forEach(e=>{hpV*=e.v;R.logD.push([`${e.ft.n} ×${e.v}`,fmt(hpV)])});
+  E.filter(e=>e.t==='hp3x').forEach(e=>{const v=diceAvg(e.val);if(v){hpV+=3*v;R.logD.push([`${e.ft.n}: 3 × ${fmt(v)}`,`+${fmt(3*v)}`])}else R.warns.push({m:`Informe o valor de "${e.ft.n}" para ele contar nos PV virtuais.`})});
+  hpV=Math.floor(hpV);R.hpV=hpV;R.logD.push(['PV virtuais','= '+fmt(hpV),'tot']);
+  let hpIdx=T.findIndex(r=>hpV<=r.hpMax);if(hpIdx<0){hpIdx=T.length-1;R.warns.push({m:'PV virtuais acima da tabela (1.850): ND defensivo limitado a 30.'})}
+  R.hpIdx=hpIdx;R.logD.push([`ND pelos PV (faixa ${fmt(T[hpIdx].hpMin)}–${fmt(T[hpIdx].hpMax)})`,ND_LABELS[hpIdx],'tot']);
+  const ca=caReal();let caV=ca;R.ca=ca;R.logD.push(['CR real',ca]);
+  E.filter(e=>e.t==='ca').forEach(e=>{caV+=e.v;R.logD.push([e.ft.n,sg(e.v)])});
+  const nSaves=S.saves.length;if(nSaves>=6){caV+=4;R.logD.push(['6 bônus em Salvaguardas','+4'])}else if(nSaves>=3){caV+=2;R.logD.push([`${nSaves} bônus em Salvaguardas`,'+2'])}
+  const hasRanged=S.attacks.some(a=>a.kind==='ranged')||S.techs.some(t=>t.form==='area'||/Dist/i.test(t.range));
+  if(+S.speed.fly>0&&hasRanged&&tND<=10){caV+=2;R.logD.push(['Voa e causa dano à distância (ND pretendido ≤ 10)','+2'])}
+  else if(+S.speed.fly>0&&tND<=10&&!hasRanged)R.logD.push(['Voo sem dano à distância: sem bônus','—']);
+  if(+S.adj.ca){caV+=+S.adj.ca;R.logD.push(['Ajuste manual de CR',sg(+S.adj.ca)])}
+  R.caV=caV;R.logD.push(['CR virtual','= '+caV,'tot']);
+  const caExp=T[hpIdx].ca,caDiff=caV-caExp,caAdj=Math.trunc(caDiff/2);
+  R.logD.push([`CR esperada p/ ND ${ND_LABELS[hpIdx]}: ${caExp} (diferença ${sg(caDiff)})`,caAdj?`${sg(caAdj)} ND`:'sem ajuste']);
+  const defIdx=clampIdx(hpIdx+caAdj);R.defIdx=defIdx;
+  // ---------- OFENSIVO ----------
+  const aCalc={};S.attacks.forEach(a=>aCalc[a.id]=attackCalc(a,prof,feats));R.aCalc=aCalc;
+  let actionDmg=0,primary=null,primaryVal=-1;const actParts=[];
+  if(S.multi.length){S.multi.forEach(m=>{const c=aCalc[m.atk];if(!c)return;const a=S.attacks.find(x=>x.id===m.atk);const v=c.avg*(+m.times||0);actionDmg+=v;actParts.push(`${m.times}× ${a.name} (${c.avg})`);if(v>primaryVal){primaryVal=v;primary=c}})}
+  else{S.attacks.forEach(a=>{const c=aCalc[a.id];if(c.avg>primaryVal){primaryVal=c.avg;primary=c;actionDmg=c.avg;actParts.length=0;actParts.push(`1× ${a.name} (${c.avg})`)}})}
+  R.actionDmg=actionDmg;
+  const perRound=[],r1Only=[];let pctD=0,r1x2=false,flatAdj=+S.adj.dmg||0;const pctNames=[];
+  E.forEach(e=>{if(e.t==='dmg'){const v=diceAvg(e.val);if(v)perRound.push([e.ft.n,v]);else if(e.ft.val)R.warns.push({m:`Informe o dano de "${e.ft.n}" para ele entrar no dano por rodada.`})}
+    if(e.t==='dmgX2'){const v=diceAvg(e.val);if(v)perRound.push([e.ft.n+' (2 alvos)',2*v]);else R.warns.push({m:`Informe o dano de "${e.ft.n}".`})}
+    if(e.t==='dmgR1'){const v=diceAvg(e.val);if(v)r1Only.push([e.ft.n,v]);else R.warns.push({m:`Informe o dano de "${e.ft.n}" para ele contar na 1ª rodada.`})}
+    if(e.t==='dmgPct'){pctD+=e.v;pctNames.push(`${e.ft.n} +${e.v}%`)}
+    if(e.t==='r1x2')r1x2=e.ft.n});
+  const budget=S.ppOverride!==''&&S.ppOverride!=null?+S.ppOverride:T[tIdx].pp;
+  const tc={};S.techs.forEach(t=>tc[t.id]=techCalc(t,prof));R.tc=tc;
+  const uses={};let ppUsed=0;
+  const avail=t=>{if(t.form==='aux'||tc[t.id].avg<=0)return false;const u=uses[t.id]||0;
+    if(t.use==='dia'&&u>=(+t.perDay||0))return false;if((t.use==='rec56'||t.use==='rec46'||t.use==='rec6')&&u>=1)return false;
+    if(ppUsed+(+t.pp||0)>budget)return false;return true};
+  const pick=act=>{let b=null;S.techs.filter(t=>t.act===act&&avail(t)).forEach(t=>{if(!b||tc[t.id].avg>tc[b.id].avg)b=t});return b};
+  const use=t=>{uses[t.id]=(uses[t.id]||0)+1;ppUsed+=(+t.pp||0)};
+  const legC=aCalc[S.leg.atk];const legAttacks=S.leg.count>0&&legC?Math.floor((+S.leg.count)/Math.max(1,+S.leg.cost||1)):0;
+  const rounds=[];
+  for(let r=1;r<=3;r++){const parts=[];let tot=0;
+    const best=pick('poderosa');
+    if(S.opt.dmgMode==='ambas'){ if(actionDmg){tot+=actionDmg;parts.push(['Ação: '+actParts.join(' + '),actionDmg])} if(best){use(best);tot+=tc[best.id].avg;parts.push(['Ação Poderosa: '+best.name+(tc[best.id].tg>1?` (×${tc[best.id].tg} alvos)`:''),tc[best.id].avg])} }
+    else{ if(best&&tc[best.id].avg>actionDmg){use(best);tot+=tc[best.id].avg;parts.push(['Ação Poderosa: '+best.name+(tc[best.id].tg>1?` (×${tc[best.id].tg} alvos)`:''),tc[best.id].avg])}
+          else if(actionDmg){tot+=actionDmg;parts.push(['Ação: '+actParts.join(' + '),actionDmg])} }
+    const bb=pick('bonus');if(bb){use(bb);tot+=tc[bb.id].avg;parts.push(['Ação Bônus: '+bb.name,tc[bb.id].avg])}
+    const rr=pick('reacao');if(rr){use(rr);tot+=tc[rr.id].avg;parts.push(['Reação: '+rr.name,tc[rr.id].avg])}
+    if(legAttacks){const v=legAttacks*legC.avg;tot+=v;parts.push([`Ações Lendárias: ${legAttacks}× ${S.attacks.find(a=>a.id===S.leg.atk).name}`,v])}
+    perRound.forEach(([n,v])=>{tot+=v;parts.push([n,v])});
+    if(r===1)r1Only.forEach(([n,v])=>{tot+=v;parts.push([n+' (1ª rodada)',v])});
+    if(r===1&&r1x2&&tot){parts.push([r1x2+': dobra a 1ª rodada',tot]);tot*=2}
+    rounds.push({tot,parts})}
+  R.rounds=rounds;R.ppUsed=ppUsed;R.budget=budget;
+  let dmg=(rounds[0].tot+rounds[1].tot+rounds[2].tot)/3;
+  R.dmgBase=dmg;
+  if(pctD){dmg*=1+pctD/100}
+  if(flatAdj)dmg+=flatAdj;
+  dmg=Math.floor(dmg);R.dmg=dmg;R.pctD=pctD;R.pctNames=pctNames;
+  let dIdx=T.findIndex(r=>dmg<=r.dmgMax);if(dIdx<0){dIdx=T.length-1;R.warns.push({m:'Dano por rodada acima da tabela (320): ND ofensivo limitado a 30.'})}
+  R.dmgIdx=dIdx;
+  const cd=cdValue(prof);R.cd=cd;
+  const baseAtk=primary?primary.bonus:prof;let atkV=S.opt.useDC?cd:baseAtk;const atkLog=[];
+  atkLog.push([S.opt.useDC?'CD de Salvaguarda (usada no lugar do ataque)':'Bônus de ataque principal',sg(atkV)]);
+  E.filter(e=>e.t==='atk').forEach(e=>{atkV+=e.v;atkLog.push([e.ft.n,sg(e.v)])});
+  if(+S.adj.atk){atkV+=+S.adj.atk;atkLog.push(['Ajuste manual de ataque',sg(+S.adj.atk)])}
+  R.atkV=atkV;R.atkLog=atkLog;
+  const atkExp=S.opt.useDC?T[dIdx].cd:T[dIdx].atk,atkDiff=atkV-atkExp,atkAdj=Math.trunc(atkDiff/2);
+  R.atkExp=atkExp;R.atkDiff=atkDiff;R.atkAdj=atkAdj;
+  const offIdx=clampIdx(dIdx+atkAdj);R.offIdx=offIdx;
+  // ---------- FINAL ----------
+  const avg=(ND_VAL[defIdx]+ND_VAL[offIdx])/2;let fIdx=ndIdxNearest(avg);R.avgIdx=fIdx;R.avgVal=avg;
+  const ndAdds=[];E.filter(e=>e.t==='nd').forEach(e=>{const o=e.o||{};if(o.max!==undefined&&ND_VAL[fIdx]>o.max){ndAdds.push([e.ft.n+` (sem efeito, ND > ${o.max})`,0]);return}ndAdds.push([e.ft.n,e.v])});
+  E.filter(e=>e.t==='ndLvl').forEach(e=>{const v=Math.min(3,Math.max(0,+e.val||0));ndAdds.push([`${e.ft.n} (${v} nív.)`,v])});
+  if(+S.adj.nd)ndAdds.push(['Ajuste manual',+S.adj.nd]);
+  const addSum=ndAdds.reduce((s,x)=>s+x[1],0);
+  if(addSum){fIdx=fIdx<4&&addSum>0?clampIdx(3+addSum):clampIdx(fIdx+addSum)}
+  R.ndAdds=ndAdds;R.finalIdx=fIdx;R.xp=XP[fIdx];R.finalProf=profOf(fIdx);R.finalPP=T[fIdx].pp;
+  // avisos
+  if(R.finalProf!==prof&&S.profMode==='target')R.warns.push({m:`O ND final (${ND_LABELS[fIdx]}) tem bônus de proficiência ${sg(R.finalProf)}, mas a ficha foi montada com ${sg(prof)} (ND pretendido ${ND_LABELS[tIdx]}). Ajuste o ND pretendido e recalcule.`,fix:'adopt'});
+  else if(fIdx!==tIdx)R.warns.push({m:`ND final ${ND_LABELS[fIdx]} difere do pretendido (${ND_LABELS[tIdx]}). Os multiplicadores de PV e as condições de ND usam o pretendido.`,fix:'adopt'});
+  const ppNeed=S.techs.reduce((s,t)=>s+(+t.pp||0),0);
+  S.techs.forEach(t=>{if(t.act==='poderosa'&&t.form!=='aux'&&tc[t.id].avg>0&&(+t.pp||0)>budget)R.warns.push({m:`"${t.name}" custa ${t.pp} PP, mais que os ${budget} PP disponíveis. Ela não entrou no cálculo.`,bad:true})});
+  if(!S.attacks.length&&!S.techs.length)R.warns.push({m:'Sem ataques nem técnicas: o dano por rodada é 0 e o ND ofensivo fica em 0.'});
+  if(S.multi.some(m=>!aCalc[m.atk]))R.warns.push({m:'Há uma linha de Ataques Múltiplos apontando para um ataque removido.',bad:true});
+  return R}
+
+/* ============ EDITOR ============ */
+const opt=(arr,sel)=>arr.map(o=>{const [v,l]=Array.isArray(o)?o:[o,o];return`<option value="${esc(v)}"${String(v)===String(sel)?' selected':''}>${esc(l)}</option>`}).join('');
+const inp=(k,v,type='text',extra='')=>`<input id="i_${k.replace(/\W/g,'_')}" data-k="${k}" type="${type}" value="${esc(v)}" ${extra}>`;
+const fld=(label,html,cls='')=>`<label class="f ${cls}"><span>${label}</span>${html}</label>`;
+const sel=(k,arr,v,extra='')=>`<select id="i_${k.replace(/\W/g,'_')}" data-k="${k}" ${extra}>${opt(arr,v)}</select>`;
+const chipArr=(arrKey,list,selected)=>`<div class="chips">${list.map(x=>`<label class="chip"><input type="checkbox" data-arr="${arrKey}" data-val="${esc(x)}"${selected.includes(x)?' checked':''}>${esc(x)}</label>`).join('')}</div>`;
+let openState=store.get('opEnemyOpen')||{};
+function mod$(id,step,title,hint,body,open=true){const o=openState[id]!==undefined?openState[id]:open;return`<details class="mod" data-mod="${id}"${o?' open':''}><summary><span class="step">${step}</span><h2>${title}</h2><span class="hint">${hint}</span></summary><div class="body">${body}</div></details>`}
+let featFilter='';
+function renderEditor(){
+  const e=[];
+  e.push(mod$('id','Passos 1–6','Identidade','nome, tamanho, tipo e ND pretendido',`
+    <div class="grid wide">
+      ${fld('Nome',inp('name',S.name))}
+      ${fld('Tamanho (define o dado de vida)',sel('size',Object.keys(SIZES).map(k=>[k,`${k} (d${SIZES[k].die})`]),S.size,'data-re="1"'))}
+      ${fld('Tipo',sel('type',['Humanoide','Animal','Máquina','Outro'],S.type))}
+      ${fld('Classificação / afiliação',inp('classif',S.classif,'text','placeholder="ex.: Marinha, Tipo C Comum"'))}
+      ${fld('Sonhos e caminhos',inp('dreams',S.dreams,'text','placeholder="imparcial se não tiver moral"'))}
+      ${fld('ND pretendido',sel('ndTarget',ND_LABELS.map((l,i)=>[i,`ND ${l} · prof. ${sg(T[i].prof)} · ${T[i].pp} PP`]),S.ndTarget,'data-re="1"'))}
+    </div>
+    <p class="note">O ND pretendido define o bônus de proficiência usado nos ataques e CDs, a faixa dos multiplicadores de PV virtual e as condições de ND das características (Guia, passos 1 e 6).</p>`));
+  e.push(mod$('attr','Passo 5 · 15 · 18','Atributos, salvaguardas e perícias','valores de 1 a 30',`
+    <div class="attrs">${ATTRS.map(a=>`<div class="attr"><b>${a}</b>${inp('attrs.'+a,S.attrs[a],'number','min="1" max="30"')}<div class="mod" id="m_${a}">${sg(mod(S.attrs[a]))}</div></div>`).join('')}</div>
+    <div class="sub">Bônus em Salvaguardas <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">· 3–4 bônus = CR virtual +2 · todos = +4</span></div>
+    ${chipArr('saves',ATTRS,S.saves)}
+    <div class="sub">Perícias <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">· não afetam o ND</span></div>
+    <div class="grid">${SKILLS.map(([n,a])=>fld(`${n} (${a})`,`<select data-skill="${esc(n)}" id="sk_${n}">${opt([[0,'—'],[1,'Proficiente'],[2,'Dobrado']],S.skills[n]||0)}</select>`)).join('')}</div>
+    <div class="grid wide">${fld('Sentidos especiais',inp('senses',S.senses,'text','placeholder="ex.: Visão no Escuro (18 metros)"'))}${fld('Invulnerabilidade a condições',`<div class="muted note">marque abaixo</div>`)}</div>
+    ${chipArr('condImm',CONDS,S.condImm)}`,false));
+  const hp=hpInfo();
+  e.push(mod$('def','Passos 7–9 · 14','Defesa e deslocamento','CR, PV, resistências',`
+    <div class="grid">
+      ${fld('Classe de Resistência',sel('caMode',[['natural','Natural (10 + DES + bônus)'],['manual','Valor definido']],S.caMode,'data-re="1"'))}
+      ${S.caMode==='natural'?fld('Bônus de resistência natural',inp('caNat',S.caNat,'number')):fld('CR',inp('caManual',S.caManual,'number'))}
+      ${fld('Pontos de Vida',sel('hpMode',[['dice','Por dados de vida'],['manual','Valor definido']],S.hpMode,'data-re="1"'))}
+      ${S.hpMode==='dice'?fld('Nº de dados de vida',inp('hd',S.hd,'number','min="1"'))+fld(`Dado (padrão d${sizeInfo().die})`,sel('hdDie',[['',`Pelo tamanho (d${sizeInfo().die})`],4,6,8,10,12,20].map(x=>Array.isArray(x)?x:[x,'d'+x]),S.hdDie)):fld('PV',inp('hpManual',S.hpManual,'number'))}
+    </div>
+    <p class="note" id="hpLine">PV: <b>${fmt(hp.hp)}</b> ${hp.expr?`(${hp.expr})`:''} · CR: <b>${caReal()}</b>. As fichas humanas do Manual usam d10/d12 em criaturas Médias; troque o dado se quiser seguir esse padrão.</p>
+    <div class="sub">Resistência a dano</div>${chipArr('res',DMG_TYPES.filter(x=>x!=='Verdadeiro'),S.res)}
+    <div class="sub">Invulnerabilidade a dano</div>${chipArr('inv',DMG_TYPES.filter(x=>x!=='Verdadeiro'),S.inv)}
+    <div class="sub">Vulnerabilidade a dano</div>${chipArr('vul',DMG_TYPES,S.vul)}
+    <label class="chip" style="justify-self:start"><input type="checkbox" data-k="logia" id="i_logia"${S.logia?' checked':''}> Intangibilidade de Logia (multiplicador próprio)</label>
+    <p class="note">PV virtuais: resistências ou invulnerabilidades a 3+ tipos (ou a Contundente, Cortante e Perfurante juntos) multiplicam os PV conforme a faixa do ND pretendido: 1–4 ×2/×2/×3 · 5–10 ×1,5/×2/×2,5 · 11–16 ×1,25/×1,5/×2 · 17+ ×1/×1,25/×1,5 (resist./invuln./Logia). Vale o maior.</p>
+    <div class="sub">Deslocamento (metros)</div>
+    <div class="grid">${[['walk','Caminhada'],['swim','Nado'],['fly','Voo'],['climb','Escalada'],['burrow','Escavação']].map(([k,l])=>fld(l,inp('speed.'+k,S.speed[k],'number','step="1.5" min="0"'))).join('')}</div>
+    <p class="note">Voar e causar dano à distância soma +2 à CR virtual quando o ND pretendido é 10 ou menor.</p>`));
+  // ataques
+  const R=compute();
+  const atkCards=S.attacks.map((a,i)=>{const c=R.aCalc[a.id];return`<div class="card">
+    <div class="card-h"><input class="name" data-k="attacks.${i}.name" id="an_${a.id}" value="${esc(a.name)}" aria-label="Nome do ataque">
+      <span class="pill" id="ap_${a.id}">${sg(c.bonus)} · ${c.avg} (${c.dn}d${c.die}${c.fl?sg(c.fl):''})</span>
+      <button class="small ghost danger" data-del="attacks" data-i="${i}">Remover</button></div>
+    <div class="grid">
+      ${fld('Tipo',`<select data-k="attacks.${i}.kind" id="ak_${a.id}" data-re="1">${opt([['melee','Corpo a corpo'],['ranged','À distância']],a.kind)}</select>`)}
+      ${fld('Natureza',`<select data-k="attacks.${i}.wt" id="aw_${a.id}">${opt([['weapon','Arma manufaturada'],['unarmed','Desarmado'],['natural','Arma natural']],a.wt)}</select>`)}
+      ${fld('Atributo',`<select data-k="attacks.${i}.attr" id="aa_${a.id}">${opt([...ATTRS,'—'],a.attr)}</select>`)}
+      ${fld('Dados',`<input type="number" min="0" data-k="attacks.${i}.dn" id="ad_${a.id}" value="${a.dn}">`)}
+      ${fld('Dado',`<select data-k="attacks.${i}.die" id="ae_${a.id}">${opt([4,6,8,10,12,20].map(x=>[x,'d'+x]),a.die)}</select>`)}
+      ${fld('Dano fixo extra',`<input type="number" data-k="attacks.${i}.flat" id="af_${a.id}" value="${a.flat}">`)}
+      ${fld('Tipo de dano',`<input list="dmgList" data-k="attacks.${i}.type" id="at_${a.id}" value="${esc(a.type)}">`)}
+      ${fld('Alcance',`<input data-k="attacks.${i}.reach" id="ar_${a.id}" value="${esc(a.reach)}">`)}
+      ${fld('Bônus fixo (vazio = prof. + mod.)',`<input type="number" data-k="attacks.${i}.bonus" id="ab_${a.id}" value="${esc(a.bonus)}">`)}
+    </div>
+    <label class="chip" style="justify-self:start"><input type="checkbox" data-k="attacks.${i}.scale" id="as_${a.id}"${a.scale?' checked':''}> Escala com o tamanho (Grande ×2, Enorme ×3, Imenso ×4 dados)</label>
+    ${fld('Efeito adicional (opcional)',`<input data-k="attacks.${i}.effect" id="ax_${a.id}" value="${esc(a.effect)}">`)}
+    <div class="note" id="an2_${a.id}">${c.notes.length?'Inclui: '+c.notes.join(', '):''}</div>
+  </div>`}).join('');
+  const multiRows=S.multi.map((m,i)=>`<div class="row"><input type="number" min="1" style="max-width:70px" data-k="multi.${i}.times" id="mt_${i}" value="${m.times}"> ×
+    <select data-k="multi.${i}.atk" id="ma_${i}" style="max-width:260px">${opt(S.attacks.map(a=>[a.id,a.name]),m.atk)}</select>
+    <button class="small ghost danger" data-del="multi" data-i="${i}">Remover</button></div>`).join('');
+  e.push(mod$('atk','Passos 10–11','Ataques','bônus de ataque e dano por arma',`
+    <div class="row"><select id="weapPreset" aria-label="Arma pronta">${opt([['','Adicionar ataque…'],...WEAPONS.map((w,i)=>[i,`${w.n} (${w.dn}d${w.die} ${w.type})`]),['custom','Ataque personalizado']],'')}</select></div>
+    ${atkCards||'<p class="note">Nenhum ataque ainda.</p>'}
+    <div class="sub">Ataques Múltiplos</div>
+    <p class="note">Quantas vezes por turno a criatura ataca e com quais ataques. A soma é o dano da Ação. Sem linhas aqui, vale o melhor ataque isolado.</p>
+    ${multiRows}
+    <div class="row"><button class="small" id="addMulti"${S.attacks.length?'':' disabled'}>Adicionar linha</button></div>`));
+  // técnicas
+  const techCards=S.techs.map((t,i)=>{const c=R.tc[t.id];return`<div class="card">
+    <div class="card-h"><input class="name" data-k="techs.${i}.name" id="tn_${t.id}" value="${esc(t.name)}" aria-label="Nome da técnica">
+      <span class="pill teal" id="tp_${t.id}">${t.form==='aux'?'sem dano':`${c.avg} dano${c.tg>1?` (${c.one} × ${c.tg})`:''}`}</span>
+      <button class="small ghost danger" data-del="techs" data-i="${i}">Remover</button></div>
+    <div class="grid">
+      ${fld('Categoria',`<select data-k="techs.${i}.cat" id="tc_${t.id}" data-re="1">${opt([['combate','Técnica de Combate'],['auxiliar','Técnica Auxiliar'],['especial','Habilidade especial']],t.cat)}</select>`)}
+      ${t.cat==='combate'?fld('Grau',`<select data-k="techs.${i}.grau" id="tg_${t.id}">${opt([1,2,3,4,5,6,7].map(x=>[x,x+'º Grau']),t.grau)}</select>`):''}
+      ${fld('Custo (PP)',`<input type="number" min="0" data-k="techs.${i}.pp" id="tpp_${t.id}" value="${t.pp}">`)}
+      ${fld('Uso',`<select data-k="techs.${i}.use" id="tu_${t.id}" data-re="1">${opt([['livre','À vontade'],['dia','X por dia'],['rec56','Recarga 5–6'],['rec46','Recarga 4–6'],['rec6','Recarga 6']],t.use)}</select>`)}
+      ${t.use==='dia'?fld('Usos por dia',`<input type="number" min="1" data-k="techs.${i}.perDay" id="tpd_${t.id}" value="${t.perDay}">`):''}
+      ${fld('Atividade',`<select data-k="techs.${i}.act" id="ta_${t.id}">${opt([['poderosa','Ação Poderosa'],['bonus','Ação Bônus'],['reacao','Reação']],t.act)}</select>`)}
+      ${fld('Forma',`<select data-k="techs.${i}.form" id="tf_${t.id}" data-re="1">${opt([['ataque','Jogada de ataque'],['area','Área com Salvaguarda'],['aux','Sem dano (efeito)']],t.form)}</select>`)}
+      ${t.form!=='aux'?`
+      ${t.form==='ataque'?fld('Atributo do ataque',`<select data-k="techs.${i}.attr" id="tat_${t.id}">${opt(['FOR','DES','CON','SAB','PRE','VON'],t.attr)}</select>`):fld('Salvaguarda do alvo',`<select data-k="techs.${i}.saveAttr" id="tsa_${t.id}">${opt(ATTRS.map(a=>[a,ATTR_NAME[a]]),t.saveAttr)}</select>`)}
+      ${fld('Dados',`<input type="number" min="0" data-k="techs.${i}.dn" id="td_${t.id}" value="${t.dn}">`)}
+      ${fld('Dado',`<select data-k="techs.${i}.die" id="tdi_${t.id}">${opt([4,6,8,10,12,20].map(x=>[x,'d'+x]),t.die)}</select>`)}
+      ${fld('Dano fixo',`<input type="number" data-k="techs.${i}.flat" id="tfl_${t.id}" value="${t.flat}">`)}
+      ${fld('Tipo de dano',`<input list="dmgList" data-k="techs.${i}.type" id="tt_${t.id}" value="${esc(t.type)}">`)}
+      ${t.form==='area'?fld('Alvos esperados',`<input type="number" min="1" data-k="techs.${i}.targets" id="ttg_${t.id}" value="${t.targets}">`):''}`:''}
+      ${fld('Alcance / área',`<input data-k="techs.${i}.range" id="tr_${t.id}" value="${esc(t.range)}">`)}
+    </div>
+    ${fld('Efeito',`<textarea data-k="techs.${i}.effect" id="te_${t.id}">${esc(t.effect)}</textarea>`)}
+    ${t.cat==='combate'&&t.form!=='aux'?`<div class="row"><button class="small ghost" data-suggest="${i}">Sugerir dano do ${t.grau}º grau</button><span class="note">padrão das fichas: ${t.form==='area'?`${[2,4,6,8,10,12,14][t.grau-1]}d6 em área`:`${[2,4,6,8,10,12,15][t.grau-1]}d10 em alvo único`}</span></div>`:''}
+  </div>`}).join('');
+  e.push(mod$('tech','Passos 11–13 · 16','Técnicas e Ações Poderosas','dano nas 3 primeiras rodadas',`
+    <p class="note">Técnicas com dano entram no cálculo ofensivo respeitando usos por dia, recargas (1 uso nas 3 rodadas) e os Pontos de Poder disponíveis (<b id="ppBudget">${R.budget}</b> PP). Área conta o dano × alvos esperados; o Guia sugere 2.</p>
+    ${techCards||'<p class="note">Nenhuma técnica ainda.</p>'}
+    <div class="row"><button class="small" id="addTech">Adicionar Técnica de Combate</button><button class="small" id="addAux">Adicionar Técnica Auxiliar</button>
+    ${fld('Pontos de Poder (vazio = tabela)',inp('ppOverride',S.ppOverride,'number','style="max-width:110px"'))}</div>`));
+  // características
+  const groups={};F.forEach(ft=>{(groups[ft.g]=groups[ft.g]||[]).push(ft)});
+  const q=featFilter.trim().toLowerCase();
+  const groupHtml=Object.entries(groups).map(([g,list])=>{
+    const items=list.filter(ft=>!q||ft.n.toLowerCase().includes(q)||ft.t.toLowerCase().includes(q));if(!items.length)return'';
+    const on=list.filter(ft=>S.feats[ft.id]).length;const key='fg_'+g;
+    return`<details class="feat-group" data-fg="${esc(g)}"${(openState[key]||q)?' open':''}><summary>${esc(g)} ${on?`<span class="pill teal">${on}</span>`:''}<span class="note">${list.length}</span></summary>
+      ${items.map(ft=>{const st=S.feats[ft.id];const none=!ft.e.length;return`<div class="feat${st?' on':''}">
+        <input type="checkbox" id="ft_${ft.id}" data-feat="${ft.id}"${st?' checked':''}>
+        <label for="ft_${ft.id}"><span class="fn">${esc(ft.n)}</span><span class="fe${none?' none':''}">${esc(effText(ft))}</span></label>
+        <div class="ft">${esc(ft.t)}</div>
+        ${st&&ft.val?`<div class="fv"><span class="note">${esc(ft.val)}:</span><input id="fv_${ft.id}" data-featval="${ft.id}" value="${esc(st.val??ft.def??'')}" placeholder="${ft.txtVal?'texto':'ex.: 4d6'}">${ft.txtVal?'':`<span class="note" id="fva_${ft.id}">média ${fmt(diceAvg(st.val))}</span>`}</div>`:''}
+      </div>`}).join('')}</details>`}).join('');
+  const customRows=S.custom.map((c,i)=>`<div class="card"><div class="card-h"><input class="name" data-k="custom.${i}.name" id="cn_${c.id}" value="${esc(c.name)}"><button class="small ghost danger" data-del="custom" data-i="${i}">Remover</button></div>
+    <div class="grid">${fld('Aparece em',`<select data-k="custom.${i}.slot" id="cs_${c.id}">${opt([['asp','Aspectos'],['acao','Ações'],['bon','Ações Bônus'],['rea','Reações'],['pod','Ações Poderosas']],c.slot)}</select>`)}
+    ${fld('Efeito no ND',`<select data-k="custom.${i}.eff" id="ce_${c.id}">${opt([['none','(–) nenhum'],['ca','CR virtual +'],['atk','Bônus de ataque virtual +'],['hpPct','PV virtual +%'],['hpMul','PV virtual ×'],['hp3x','PV virtual +3× valor'],['dmg','Soma ao dano por rodada'],['dmgR1','Dano só na 1ª rodada'],['dmgPct','Dano virtual +%'],['nd','ND +']],c.eff)}</select>`)}
+    ${fld('Número do efeito',`<input type="number" data-k="custom.${i}.v" id="cv_${c.id}" value="${esc(c.v)}">`)}
+    ${fld('Valor / dano (ex.: 4d6)',`<input data-k="custom.${i}.val" id="cva_${c.id}" value="${esc(c.val)}">`)}</div>
+    ${fld('Descrição',`<textarea data-k="custom.${i}.text" id="ct_${c.id}">${esc(c.text)}</textarea>`)}
+    <p class="note">Para "soma ao dano", "1ª rodada" e "+3× valor", use o campo Valor. Para os demais, use Número.</p></div>`).join('');
+  e.push(mod$('feat','Passo 13','Características das criaturas','aspectos, ações, reações e lendárias',`
+    <p class="note">Catálogo completo do Guia do Narrador (págs. 131–140), mais as características que aparecem nas fichas do Manual dos Inimigos, com o efeito virtual de cada uma no ND. Ataques Múltiplos ficam no módulo Ataques.</p>
+    <input id="featSearch" type="search" placeholder="Filtrar características…" value="${esc(featFilter)}">
+    ${groupHtml}
+    <div class="sub">Características próprias</div>${customRows}
+    <div class="row"><button class="small" id="addCustom">Criar característica</button></div>`));
+  e.push(mod$('haki','Haki · Lendárias','Haki e Ações Lendárias','estágios e ações fora do turno',`
+    <div class="grid">
+      ${fld('Haki do Armamento',sel('haki.arm',[[0,'—'],[1,'Inexperiente (+2 dados)'],[2,'Treinado (+3 dados)'],[3,'Perito (+4 dados)']],S.haki.arm,'data-re="1"'))}
+      ${fld('Haki da Observação',sel('haki.obs',[[0,'—'],[1,'Inexperiente'],[2,'Treinado'],[3,'Perito']],S.haki.obs))}
+      ${fld('Haki do Rei',sel('haki.rei',[[0,'—'],[1,'Inexperiente (nível ≤ 6)'],[2,'Treinado (nível ≤ 8)'],[3,'Perito (nível ≤ 10)']],S.haki.rei))}
+    </div>
+    <p class="note">O estágio do Armamento soma dados reais aos ataques e às Técnicas com jogada de ataque. Observação e Rei não têm efeito de ND definido no Guia: use os Ajustes manuais se precisar. As características de Haki estão no catálogo acima.</p>
+    <div class="sub">Ações Lendárias</div>
+    <div class="grid">
+      ${fld('Ações lendárias por rodada',inp('leg.count',S.leg.count,'number','min="0"'))}
+      ${fld('Ataque usado',sel('leg.atk',[['','—'],...S.attacks.map(a=>[a.id,a.name])],S.leg.atk))}
+      ${fld('Custo do ataque',inp('leg.cost',S.leg.cost,'number','min="1"'))}
+    </div>
+    ${fld('Outras ações lendárias (texto, uma por linha "Nome: efeito")',`<textarea data-k="leg.extra" id="i_leg_extra">${esc(S.leg.extra)}</textarea>`)}
+    <p class="note">"Ataque" como ação lendária soma ao dano: nº de ações ÷ custo × dano do ataque, por rodada. Movimento e Detectar não afetam o ND.</p>`,false));
+  e.push(mod$('adj','Passo 12 · Ajustes','CD, opções e ajustes manuais','como o dano é contado',`
+    <div class="grid">
+      ${fld('Atributo da CD',sel('cdAttr',ATTRS.map(a=>[a,ATTR_NAME[a]]),S.cdAttr))}
+      ${fld('CD fixa (vazio = 8 + prof. + mod.)',inp('cdOverride',S.cdOverride,'number'))}
+      ${fld('Dano por rodada com Técnicas',sel('opt.dmgMode',[['melhor','Ação OU Ação Poderosa (exemplo do Guia)'],['ambas','Ação E Ação Poderosa no mesmo turno']],S.opt.dmgMode))}
+      ${fld('ND ofensivo compara',sel('opt.useDC',[['false','Bônus de ataque'],['true','CD de Salvaguarda']],String(S.opt.useDC)))}
+      ${fld('Proficiência da ficha',sel('profMode',[['target','Do ND pretendido'],['final','Do ND final']],S.profMode))}
+    </div>
+    <p class="note">O Guia calcula o dano médio das 3 primeiras rodadas usando os ataques mais efetivos. No exemplo do pacifista, cada rodada usa o laser de boca ou a ação de ataques, não os dois. Escolha "Ação E Ação Poderosa" se a sua mesa usa as duas no mesmo turno. Use a CD quando a criatura depende mais de Salvaguardas que de ataques.</p>
+    <div class="sub">Ajustes manuais (virtuais)</div>
+    <div class="grid">
+      ${fld('CR virtual ±',inp('adj.ca',S.adj.ca,'number'))}
+      ${fld('Ataque virtual ±',inp('adj.atk',S.adj.atk,'number'))}
+      ${fld('PV virtual ±%',inp('adj.hpPct',S.adj.hpPct,'number'))}
+      ${fld('Dano por rodada ±',inp('adj.dmg',S.adj.dmg,'number'))}
+      ${fld('ND final ±',inp('adj.nd',S.adj.nd,'number'))}
+    </div>
+    ${fld('Notas do narrador',`<textarea data-k="notes" id="i_notes">${esc(S.notes)}</textarea>`)}`,false));
+  e.push(`<datalist id="dmgList">${DMG_TYPES.map(d=>`<option value="${d}">`).join('')}<option value="Contundente, Cortante ou Perfurante"></datalist>`);
+  $('#editor').innerHTML=e.join('');
+  refresh(R);
+}
+
+/* ============ RESULTADO + FICHA ============ */
+function lr(a,b,cls=''){return`<div class="lr ${cls}"><span>${a}</span><span>${b}</span></div>`}
+function renderResult(R){
+  const f=R.finalIdx;
+  const h=[];
+  h.push(`<div class="nd-hero"><div class="nd-big"><small>ND final</small>${ND_LABELS[f]}</div>
+    <div class="kv"><div>Experiência<b>${fmt(R.xp)}${f===0?' ou 10':''}</b></div><div>Proficiência<b>${sg(R.finalProf)}</b></div><div>Pontos de Poder<b>${S.ppOverride!==''?S.ppOverride:R.finalPP||'–'}</b></div></div>
+    <div class="kv"><div>PV virt.<b>${fmt(R.hpV)}</b></div><div>CR virt.<b>${R.caV}</b></div><div>Dano/rodada<b>${fmt(R.dmg)}</b></div></div></div>`);
+  h.push(`<div class="split"><div><h3>ND defensivo</h3><div class="v">${ND_LABELS[R.defIdx]}</div></div><div><h3>ND ofensivo</h3><div class="v">${ND_LABELS[R.offIdx]}</div></div></div>`);
+  if(R.warns.length)h.push(`<div class="warns" style="padding-top:12px">${R.warns.map(w=>`<div class="w${w.bad?' bad':''}">${esc(w.m)}${w.fix==='adopt'?`<br><button class="small" data-adopt="1">Usar ND ${ND_LABELS[f]} como pretendido</button>`:''}</div>`).join('')}</div>`);
+  const L=[];
+  L.push('<h4>Defensivo · PV virtuais</h4>');R.logD.forEach(x=>L.push(lr(esc(x[0]),esc(x[1]),x[2]||'')));
+  L.push(lr('ND defensivo',ND_LABELS[R.defIdx],'tot'));
+  L.push('<h4>Ofensivo · dano nas 3 primeiras rodadas</h4>');
+  R.rounds.forEach((r,i)=>{L.push(`<div class="lr tot"><span>${i+1}ª rodada</span><span>${fmt(r.tot)}</span></div>`);r.parts.forEach(p=>L.push(lr('&nbsp;&nbsp;'+esc(p[0]),fmt(p[1]))))});
+  L.push(lr('Média das 3 rodadas',fmt(Math.floor(R.dmgBase))));
+  if(R.pctD)L.push(lr(esc(R.pctNames.join(', ')),`+${R.pctD}%`));
+  if(+S.adj.dmg)L.push(lr('Ajuste manual de dano',sg(+S.adj.dmg)));
+  L.push(lr('Dano por rodada',fmt(R.dmg),'tot'));
+  L.push(lr(`ND pelo dano (faixa ${T[R.dmgIdx].dmgMin}–${T[R.dmgIdx].dmgMax})`,ND_LABELS[R.dmgIdx]));
+  R.atkLog.forEach(x=>L.push(lr(esc(x[0]),x[1])));
+  L.push(lr(`${S.opt.useDC?'CD':'Ataque'} virtual ${sg(R.atkV)} vs. esperado ${S.opt.useDC?R.atkExp:sg(R.atkExp)} (dif. ${sg(R.atkDiff)})`,R.atkAdj?`${sg(R.atkAdj)} ND`:'sem ajuste'));
+  L.push(lr('ND ofensivo',ND_LABELS[R.offIdx],'tot'));
+  if(R.budget||R.ppUsed)L.push(lr('PP gastos nas 3 rodadas',`${R.ppUsed} / ${R.budget}`));
+  L.push('<h4>Final</h4>');
+  L.push(lr(`Média (${ND_LABELS[R.defIdx]} + ${ND_LABELS[R.offIdx]}) ÷ 2 = ${String(+R.avgVal.toFixed(3)).replace('.',',')}`,ND_LABELS[R.avgIdx]));
+  R.ndAdds.forEach(x=>L.push(lr(esc(x[0]),x[1]?sg(x[1]):'—')));
+  L.push(lr('ND final',ND_LABELS[f],'tot'));
+  h.push(`<details ${openState.log!==false?'open':''} data-log="1"><summary style="padding:10px 14px;cursor:pointer;font-weight:600">Memória de cálculo</summary><div class="log">${L.join('')}</div></details>`);
+  const rows=T.map((t,i)=>{const cls=[i===R.hpIdx||i===R.defIdx?'hd':'',i===R.dmgIdx||i===R.offIdx?'ho':'',i===f?'hf':''].join(' ');
+    return`<tr class="${cls}"><td>${ND_LABELS[i]}</td><td>${sg(t.prof)}</td><td>${t.pp||'–'}</td><td>${t.ca}</td><td>${fmt(t.hpMin)}–${fmt(t.hpMax)}</td><td>${sg(t.atk)}</td><td>${t.dmgMin}–${t.dmgMax}</td><td>${t.cd}</td><td>${fmt(XP[i])}</td></tr>`}).join('');
+  h.push(`<details data-tab="1"${openState.tab?' open':''}><summary style="padding:10px 14px;cursor:pointer;font-weight:600;border-top:1px solid var(--line)">Tabela de ND do Guia <span class="note">· teal = defensivo, latão = ofensivo, contorno = final</span></summary><div class="tscroll"><table class="ref"><thead><tr><th>ND</th><th>Prof.</th><th>PP</th><th>CR</th><th>PV</th><th>Ataque</th><th>Dano</th><th>CD</th><th>XP</th></tr></thead><tbody>${rows}</tbody></table></div></details>`);
+  $('#result').innerHTML=h.join('');
+}
+function buildBlock(R){
+  const prof=basicProf(R);const P=[];// sections: [title, [paragraph html]]
+  const feats=activeFeats();
+  const hp=hpInfo();const cd=cdValue(prof);
+  const speeds=[];const sp=S.speed;
+  const hdr={nd:ND_LABELS[R.finalIdx],xp:fmt(R.xp),pp:S.ppOverride!==''?S.ppOverride:(R.finalPP||'-'),ca:caReal(),prof:sg(prof),walk:`${String(sp.walk).replace('.',',')} metros`,hp:`${fmt(hp.hp)}${hp.expr?` (${hp.expr})`:''}`,cd,
+    extra:[+sp.swim?`Nado: ${String(sp.swim).replace('.',',')} metros`:'',+sp.fly?`Voo: ${String(sp.fly).replace('.',',')} metros`:'',+sp.climb?`Escalada: ${String(sp.climb).replace('.',',')} metros`:'',+sp.burrow?`Escavação: ${String(sp.burrow).replace('.',',')} metros`:''].filter(Boolean)};
+  const car=[];
+  if(S.type==='Animal'||S.classif)car.push(`<em>Classificação:</em> ${esc([S.type!=='Humanoide'?S.type:'',S.classif].filter(Boolean).join(', '))}.`);
+  if(S.size!=='Médio'||S.type==='Animal')car.push(`<em>Tamanho:</em> ${esc(S.size)}.`);
+  const sk=SKILLS.filter(([n])=>S.skills[n]).map(([n,a])=>`${n} ${sg(mod(S.attrs[a])+prof*S.skills[n])}`);
+  if(sk.length)car.push(`<em>Perícia:</em> ${sk.join(', ')}.`);
+  if(S.saves.length)car.push(`<em>Salvaguarda:</em> ${ATTRS.filter(a=>S.saves.includes(a)).map(a=>`${ATTR_NAME[a]} ${sg(mod(S.attrs[a])+prof)}`).join(', ')}.`);
+  const lst=a=>a.length>1?a.slice(0,-1).join(', ')+' e '+a[a.length-1]:a[0];
+  if(S.vul.length)car.push(`<em>Vulnerabilidade a Dano:</em> ${lst(S.vul)}.`);
+  if(S.res.length)car.push(`<em>Resistência a Dano:</em> ${lst(S.res)}.`);
+  if(S.inv.length)car.push(`<em>Invulnerabilidade a Dano:</em> ${lst(S.inv)}.`);
+  if(S.logia)car.push(`<em>Intangibilidade:</em> Logia.`);
+  if(S.condImm.length)car.push(`<em>Invulnerabilidade à Condição:</em> ${lst(S.condImm)}.`);
+  const perc=S.skills['Percepção']?10+mod(S.attrs.VON)+prof*S.skills['Percepção']:10+mod(S.attrs.VON);
+  car.push(`<em>Sentidos:</em> ${S.senses?esc(S.senses)+', ':''}Percepção Passiva ${perc}.`);
+  if(S.haki.arm||S.haki.obs||S.haki.rei)car.push(`<em>Haki:</em> ${[S.haki.arm?'Armamento ('+['','Inexperiente','Treinado','Perito'][S.haki.arm]+')':'',S.haki.obs?'Observação ('+['','Inexperiente','Treinado','Perito'][S.haki.obs]+')':'',S.haki.rei?'Rei ('+['','Inexperiente','Treinado','Perito'][S.haki.rei]+')':''].filter(Boolean).join(', ')}.`);
+  P.push(['Características',car]);
+  const bySlot={asp:[],acao:[],bon:[],rea:[],pod:[]};
+  feats.forEach(({ft,val})=>{const showVal=val&&(ft.val||ft.custom);(bySlot[ft.slot]||bySlot.asp).push(`<em>${esc(ft.n)}:</em> ${esc(ft.t)}${showVal?` <span class="muted">(${esc(val)}${!ft.txtVal&&diceAvg(val)?` = ${fmt(diceAvg(val))}`:''})</span>`:''}`)});
+  if(S.haki.arm)bySlot.asp.push(`<em>Haki do Armamento (${['','Inexperiente','Treinado','Perito'][S.haki.arm]}):</em> Jogadas de ataque (comuns ou Técnicas) recebem ${[0,2,3,4][S.haki.arm]} dados de dano adicionais (incluso).`);
+  if(S.haki.obs)bySlot.asp.push(`<em>Haki da Observação (${['','Inexperiente','Treinado','Perito'][S.haki.obs]}):</em> ${['','Jogadas de ataque (comum) recebem vantagem.','Jogadas de ataque (comum) recebem vantagem e ataques (comum) contra a criatura sofrem desvantagem.','Jogadas de ataque (comum ou Técnicas) recebem vantagem e ataques (comum ou Técnicas) contra a criatura sofrem desvantagem.'][S.haki.obs]}`);
+  if(S.haki.rei)bySlot.asp.push(`<em>Haki do Rei (${['','Inexperiente','Treinado','Perito'][S.haki.rei]}):</em> Personagens de jogadores com nível ${[0,6,8,10][S.haki.rei]} ou menor têm os PV reduzidos a 0 ao sofrer qualquer dano da criatura.`);
+  if(bySlot.asp.length)P.push(['Aspectos',bySlot.asp]);
+  const acts=[];
+  if(S.multi.length){const parts=S.multi.map(m=>{const a=S.attacks.find(x=>x.id===m.atk);return a?`${m.times}× ${a.name.toLowerCase()}`:''}).filter(Boolean);
+    const tot=S.multi.reduce((s,m)=>s+(+m.times||0),0);acts.push(`<em>Ataques Múltiplos:</em> Pode atacar ${['','uma','duas','três','quatro','cinco','seis'][tot]||tot} vez${tot>1?'es':''} por turno (${parts.join(', ')}).`)}
+  S.attacks.forEach(a=>{const c=R.aCalc[a.id];const kind=a.kind==='melee'?(a.wt==='weapon'?'Ataque Corpo a Corpo com Arma':'Ataque Corpo a Corpo'):(a.wt==='weapon'?'Ataque à Distância com Arma':'Ataque à Distância');
+    acts.push(`<em>${esc(a.name)}:</em> ${kind}: ${sg(c.bonus)} para atingir, ${esc(a.reach)}, um alvo.<br>Acerto: ${c.avg} (${c.dn}d${c.die}${c.fl?sg(c.fl):''}) de dano ${esc(a.type)}.${a.effect?`<br>Efeito: ${esc(a.effect)}`:''}`)});
+  bySlot.acao.forEach(x=>acts.push(x));
+  if(acts.length)P.push(['Ações',acts]);
+  const techLine=t=>{const c=R.tc[t.id];const use={livre:'',dia:` | ${t.perDay}/dia`,rec56:' | Recarga 5-6',rec46:' | Recarga 4-6',rec6:' | Recarga 6'}[t.use];
+    const head=t.cat==='combate'?`Técnica de Combate – ${t.grau}º Grau | Custo: ${t.pp} PP${use}`:t.cat==='auxiliar'?`Técnica Auxiliar | Custo: ${t.pp} PP${use}`:`${t.pp?`Custo: ${t.pp} PP`:''}${use}`.replace(/^ \| /,'');
+    let body='';
+    if(t.form==='ataque')body=`Ataque ${/dist/i.test(t.range)?'à Distância':'Corpo a Corpo'}: ${sg(c.bonus)} para atingir, ${esc(t.range)}.<br>Acerto: ${c.one} (${c.dn}d${c.die}${c.fl?sg(c.fl):''}) de dano ${esc(t.type)}.${t.effect?`<br>Efeito: ${esc(t.effect)}`:''}`;
+    else if(t.form==='area')body=`Efeito em área, alcance de ${esc(t.range)}. Dano: ${c.one} (${c.dn}d${c.die}${c.fl?sg(c.fl):''}) ${esc(t.type)}. Toda criatura dentro da área da técnica deve fazer uma Salvaguarda de ${ATTR_NAME[t.saveAttr]} CD ${cd}. Sofrendo todo o dano se falhar ou metade desse dano se obtiver sucesso.${t.effect?` ${esc(t.effect)}`:''}`;
+    else body=esc(t.effect||'');
+    return`<em>${esc(t.name)}${head?` (${head})`:''}:</em> ${body}`};
+  const bon=[...bySlot.bon,...S.techs.filter(t=>t.act==='bonus').map(techLine)];if(bon.length)P.push(['Ações Bônus',bon]);
+  const rea=[...bySlot.rea,...S.techs.filter(t=>t.act==='reacao').map(techLine)];if(rea.length)P.push(['Reações',rea]);
+  const pod=[...bySlot.pod,...S.techs.filter(t=>t.act==='poderosa').map(techLine)];if(pod.length)P.push(['Ações Poderosas',pod]);
+  if(+S.leg.count>0){const L=[`<em>Figura Lendária:</em> Pode realizar ${S.leg.count} ações lendárias, escolhidas dentre as opções abaixo. Apenas uma ação lendária pode ser usada por vez e apenas no final do turno de outra criatura. Recupera as ações lendárias gastas no começo do turno dela.`];
+    const la=S.attacks.find(a=>a.id===S.leg.atk);if(la)L.push(`<em>Ataque${+S.leg.cost>1?` (Custa ${S.leg.cost} Ações Lendárias)`:''}:</em> Realiza um ataque de ${esc(la.name)}.`);
+    String(S.leg.extra||'').split('\n').filter(x=>x.trim()).forEach(x=>{const i=x.indexOf(':');L.push(i>0?`<em>${esc(x.slice(0,i))}:</em>${esc(x.slice(i+1))}`:esc(x))});
+    P.push(['Ações Lendárias',L])}
+  return{hdr,P}}
+function renderBlock(R){
+  const {hdr,P}=buildBlock(R);
+  $('#statblock').innerHTML=`<div class="row" style="justify-content:space-between;margin-bottom:8px"><span class="step">Ficha no formato do Manual</span><span class="row"><button class="small" id="btnCopy">Copiar texto</button><button class="small" id="btnSave">Salvar na biblioteca</button></span></div>
+  <h3 class="sb-name">${esc(S.name)}</h3>
+  <div class="sb-hdr"><div><b>Nível de Desafio:</b> ${hdr.nd}</div><div><b>Experiência:</b> ${hdr.xp}</div><div><b>Pontos de Poder:</b> ${hdr.pp}</div>
+    <div><b>Classe de Resistência:</b> ${hdr.ca}</div><div><b>Bônus de Proficiência:</b> ${hdr.prof}</div><div><b>Deslocamento:</b> ${hdr.walk}</div>
+    <div><b>Pontos de Vida:</b> ${hdr.hp}</div><div><b>Classe de Dificuldade:</b> ${hdr.cd}</div><div>${hdr.extra.join('<br>')||''}</div></div>
+  <div class="sb-attrs">${ATTRS.map(a=>`<div><b>${a}</b><span>${S.attrs[a]} (${mod(S.attrs[a])>0?'+':''}${mod(S.attrs[a])})</span></div>`).join('')}</div>
+  ${P.map(([t,ps])=>`<div class="sb-sec"><h5>${t}</h5><div>${ps.map(p=>`<p>${p}</p>`).join('')}</div></div>`).join('')}
+  ${S.notes?`<div class="sb-sec"><h5>Notas</h5><div><p>${esc(S.notes)}</p></div></div>`:''}`;
+}
+function blockText(R){const {hdr,P}=buildBlock(R);const strip=h=>h.replace(/<br>/g,'\n').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"');
+  let t=`${S.name.toUpperCase()}\nNÍVEL DE DESAFIO: ${hdr.nd}   EXPERIÊNCIA: ${hdr.xp}   PONTOS DE PODER: ${hdr.pp}\nClasse de Resistência: ${hdr.ca}   Bônus de Proficiência: ${hdr.prof}   Deslocamento: ${hdr.walk}\nPontos de Vida: ${hdr.hp}   Classe de Dificuldade: ${hdr.cd}${hdr.extra.length?'   '+hdr.extra.join('   '):''}\n`;
+  t+=ATTRS.map(a=>`${a} ${S.attrs[a]} (${sg(mod(S.attrs[a])).replace('+0','0')})`).join('  ')+'\n';
+  P.forEach(([title,ps])=>{t+=`\n${title.toUpperCase()}\n`+ps.map(p=>strip(p)).join('\n')+'\n'});if(S.notes)t+=`\nNOTAS\n${S.notes}\n`;return t}
+let lastR=null;
+function refresh(R){R=R||compute();lastR=R;renderResult(R);renderBlock(R);store.set('opEnemyDraft',S)}
+function softUpdate(){ // atualiza números do editor sem redesenhar
+  const R=compute();
+  ATTRS.forEach(a=>{const el=$('#m_'+a);if(el)el.textContent=sg(mod(S.attrs[a]))});
+  const hp=hpInfo();const hl=$('#hpLine');if(hl)hl.innerHTML=`PV: <b>${fmt(hp.hp)}</b> ${hp.expr?`(${hp.expr})`:''} · CR: <b>${caReal()}</b>. As fichas humanas do Manual usam d10/d12 em criaturas Médias; troque o dado se quiser seguir esse padrão.`;
+  S.attacks.forEach(a=>{const c=R.aCalc[a.id];const p=$('#ap_'+a.id);if(p)p.textContent=`${sg(c.bonus)} · ${c.avg} (${c.dn}d${c.die}${c.fl?sg(c.fl):''})`;const n=$('#an2_'+a.id);if(n)n.textContent=c.notes.length?'Inclui: '+c.notes.join(', '):''});
+  S.techs.forEach(t=>{const c=R.tc[t.id];const p=$('#tp_'+t.id);if(p)p.textContent=t.form==='aux'?'sem dano':`${c.avg} dano${c.tg>1?` (${c.one} × ${c.tg})`:''}`});
+  const pb=$('#ppBudget');if(pb)pb.textContent=R.budget;
+  for(const id in S.feats){const el=$('#fva_'+id);if(el)el.textContent='média '+fmt(diceAvg(S.feats[id].val))}
+  refresh(R)}
+
+/* ============ EVENTOS ============ */
+function setPath(path,val){const ks=path.split('.');let o=S;for(let i=0;i<ks.length-1;i++)o=o[ks[i]];const last=ks[ks.length-1];
+  if(val==='true')val=true;else if(val==='false')val=false;o[last]=val}
+function coerce(el){if(el.type==='checkbox')return el.checked;if(el.type==='number')return el.value===''?'':+el.value;
+  const k=el.dataset.k||'';if(/^(ndTarget|haki\.|attacks\.\d+\.die|techs\.\d+\.(die|grau)|hdDie)/.test(k))return el.value===''?'':+el.value;return el.value}
+document.addEventListener('input',ev=>{const el=ev.target;
+  if(el.id==='featSearch'){featFilter=el.value;const pos=el.selectionStart;renderEditor();const s=$('#featSearch');s.focus();s.setSelectionRange(pos,pos);return}
+  if(el.dataset.k){setPath(el.dataset.k,coerce(el));if(el.dataset.re||el.tagName==='SELECT'&&/ndTarget|size|caMode|hpMode|\.kind|\.cat|\.use|\.form|haki/.test(el.dataset.k))renderEditor();else softUpdate();return}
+  if(el.dataset.arr){const arr=S[el.dataset.arr];const v=el.dataset.val;const i=arr.indexOf(v);if(el.checked&&i<0)arr.push(v);if(!el.checked&&i>=0)arr.splice(i,1);softUpdate();return}
+  if(el.dataset.skill){const v=+el.value;if(v)S.skills[el.dataset.skill]=v;else delete S.skills[el.dataset.skill];softUpdate();return}
+  if(el.dataset.feat){const id=el.dataset.feat;if(el.checked){const ft=FEAT_BY_ID[id];S.feats[id]={val:ft&&ft.def?ft.def:''}}else delete S.feats[id];renderEditor();return}
+  if(el.dataset.featval){S.feats[el.dataset.featval].val=el.value;softUpdate();return}
+  if(el.id==='weapPreset'){const v=el.value;if(v==='')return;const w=v==='custom'?{n:'Novo ataque',kind:'melee',wt:'natural',attr:'FOR',dn:1,die:8,type:'Contundente',reach:'alcance 1,5 metro',scale:false}:WEAPONS[+v];
+    const a=atk({name:w.n,kind:w.kind,wt:w.wt,attr:w.attr,dn:w.dn,die:w.die,type:w.type,reach:w.reach,scale:w.scale});S.attacks.push(a);if(!S.multi.length)S.multi.push({atk:a.id,times:1});renderEditor();return}
+  if(el.id==='presetSel'){const p=PRESETS[+el.value];if(p){S=Object.assign(blank(),p[1]());featFilter='';renderEditor();toast(`Exemplo carregado: ${S.name}`)}el.value='';return}
+});
+document.addEventListener('toggle',ev=>{const d=ev.target;if(d.dataset&&d.dataset.mod){openState[d.dataset.mod]=d.open;store.set('opEnemyOpen',openState)}
+  if(d.dataset&&d.dataset.fg){openState['fg_'+d.dataset.fg]=d.open;store.set('opEnemyOpen',openState)}
+  if(d.dataset&&d.dataset.log){openState.log=d.open;store.set('opEnemyOpen',openState)}
+  if(d.dataset&&d.dataset.tab){openState.tab=d.open;store.set('opEnemyOpen',openState)}},true);
+document.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;
+  if(b.dataset.del){const arr=S[b.dataset.del];const [rm]=arr.splice(+b.dataset.i,1);if(b.dataset.del==='attacks'){S.multi=S.multi.filter(m=>m.atk!==rm.id);if(S.leg.atk===rm.id)S.leg.atk=''}renderEditor();return}
+  if(b.dataset.suggest!==undefined){const t=S.techs[+b.dataset.suggest];if(t.form==='area'){t.dn=[2,4,6,8,10,12,14][t.grau-1];t.die=6}else{t.dn=[2,4,6,8,10,12,15][t.grau-1];t.die=10}renderEditor();return}
+  if(b.dataset.adopt){S.ndTarget=lastR.finalIdx;renderEditor();toast(`ND pretendido agora é ${ND_LABELS[S.ndTarget]}`);return}
+  switch(b.id){
+    case'addMulti':S.multi.push({atk:S.attacks[0].id,times:1});renderEditor();break;
+    case'addTech':S.techs.push(tech({name:'Nova Técnica',grau:1,pp:2}));renderEditor();break;
+    case'addAux':S.techs.push(tech({name:'Nova Técnica Auxiliar',cat:'auxiliar',pp:2,act:'bonus',form:'aux',dn:0}));renderEditor();break;
+    case'addCustom':S.custom.push({id:uid(),name:'Nova característica',slot:'asp',eff:'none',v:0,val:'',text:''});renderEditor();break;
+    case'btnNew':openConfirm('Começar uma ficha em branco? A ficha atual continua na biblioteca só se você a tiver salvado.','Nova ficha',()=>{S=blank();renderEditor()});break;
+    case'btnCopy':{const t=blockText(lastR);(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Ficha copiada')).catch(()=>openText('Copiar ficha',t));break}
+    case'btnSave':{const lib=store.get('opEnemyLib')||[];const i=lib.findIndex(x=>x.name===S.name);const entry={name:S.name,nd:ND_LABELS[lastR.finalIdx],data:JSON.parse(JSON.stringify(S)),at:Date.now()};if(i>=0)lib[i]=entry;else lib.push(entry);store.set('opEnemyLib',lib);toast(`"${S.name}" salvo na biblioteca`);break}
+    case'btnLib':openLib();break;
+    case'btnIO':openIO();break;
+  }});
+/* ============ MODAIS ============ */
+function modal(html){$('#modalRoot').innerHTML=`<div class="modal" id="mdl"><div role="dialog" aria-modal="true">${html}</div></div>`;$('#mdl').addEventListener('click',e=>{if(e.target.id==='mdl'||e.target.dataset.close)closeModal()})}
+function closeModal(){$('#modalRoot').innerHTML=''}
+function openConfirm(msg,label,fn){modal(`<h3>${esc(label)}</h3><p>${esc(msg)}</p><div class="row"><button class="primary" id="okC">${esc(label)}</button><button data-close="1">Cancelar</button></div>`);$('#okC').onclick=()=>{closeModal();fn()}}
+function openText(title,txt){modal(`<h3>${esc(title)}</h3><p class="note">A cópia automática não está disponível aqui. O texto já está selecionado: use Ctrl+C.</p><textarea id="txtOut" style="min-height:300px;font-family:var(--mono);font-size:12px">${esc(txt)}</textarea><div class="row"><button data-close="1">Fechar</button></div>`);const t=$('#txtOut');t.focus();t.select()}
+function openLib(){const lib=store.get('opEnemyLib')||[];
+  modal(`<h3>Biblioteca</h3><p class="note">Fichas salvas neste navegador.</p>${lib.length?lib.map((x,i)=>`<div class="lib-item"><span><b>${esc(x.name)}</b> <span class="pill">ND ${esc(x.nd)}</span></span><span class="row"><button class="small" data-load="${i}">Abrir</button><button class="small danger" data-rm="${i}">Excluir</button></span></div>`).join(''):'<p>Nenhuma ficha salva ainda. Use "Salvar na biblioteca" na ficha.</p>'}<div class="row"><button data-close="1">Fechar</button></div>`);
+  $('#mdl').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.load){S=Object.assign(blank(),lib[+b.dataset.load].data);closeModal();renderEditor();toast('Ficha aberta')}
+    if(b.dataset.rm){lib.splice(+b.dataset.rm,1);store.set('opEnemyLib',lib);openLib()}})}
+function openIO(){modal(`<h3>Importar / exportar</h3><p class="note">Copie o JSON para guardar a ficha ou compartilhar com outro narrador. Para importar, cole um JSON ou escolha um arquivo .json.</p>
+  <textarea id="ioTxt" style="min-height:220px;font-family:var(--mono);font-size:12px">${esc(JSON.stringify(S,null,1))}</textarea>
+  <div class="row"><button id="ioCopy">Copiar JSON</button><button class="primary" id="ioLoad">Importar texto</button><label class="btn" for="ioFile" style="cursor:pointer">Escolher arquivo</label><input type="file" id="ioFile" accept=".json,application/json" hidden><button data-close="1">Fechar</button></div><p class="note" id="ioMsg"></p>`);
+  $('#ioCopy').onclick=()=>{const t=$('#ioTxt');(navigator.clipboard?navigator.clipboard.writeText(t.value):Promise.reject()).then(()=>toast('JSON copiado')).catch(()=>{t.focus();t.select();$('#ioMsg').textContent='Texto selecionado: use Ctrl+C.'})};
+  const load=txt=>{try{const d=JSON.parse(txt);if(!d||typeof d!=='object'||!d.attrs)throw 0;S=Object.assign(blank(),d);closeModal();renderEditor();toast('Ficha importada')}catch(e){$('#ioMsg').textContent='Esse texto não é uma ficha válida do Estaleiro. Confira se copiou o JSON inteiro.'}};
+  $('#ioLoad').onclick=()=>load($('#ioTxt').value);
+  $('#ioFile').onchange=e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>load(r.result);r.readAsText(file)}}
+
+$('#presetSel').innerHTML=`<option value="">Carregar exemplo do Manual…</option>`+PRESETS.map((p,i)=>`<option value="${i}">${esc(p[0])}</option>`).join('');
+renderEditor();
+</script>
+</body>
+</html>
