@@ -181,6 +181,8 @@ const T=[
 [9,145,22,1501,1738,14,285,302,22],[9,150,23,1539,1850,15,303,320,23]
 ].map(r=>({prof:r[0],pp:r[1],ca:r[2],hpMin:r[3],hpMax:r[4],atk:r[5],dmgMin:r[6],dmgMax:r[7],cd:r[8]}));
 const XP=[0,25,50,100,200,450,700,1100,1800,2300,2900,3900,5000,5900,7200,8400,10000,11500,13000,15000,18000,20000,22000,25000,33000,41000,50000,62000,75000,90000,105000,120000,135000,155000];
+// Atributos das 73 fichas do Manual dos Inimigos: [nome, ND, FOR..VON, grupo H=humanoide M=máquina A=animal]
+const MANUAL_ATTRS=[["Soldado Recruta","1/8","12,10,10,10,10,10","H"],["Soldado Aprendiz","1/4","13,10,11,10,10,10","H"],["Soldado de 1ª Classe","1/2","14,13,12,10,10,10","H"],["Cabo","1","14,14,12,10,10,10","H"],["Sargento","2","16,14,15,10,10,10","H"],["Sargento Major","3","16,16,16,11,16,12","H"],["Subtenente","4","17,16,16,18,14,12","H"],["Estandarte","5","18,17,17,12,15,13","H"],["2º Tenente","6","18,17,17,14,16,14","H"],["1º Tenente","7","18,16,17,15,17,15","H"],["Tenente-Comandante","8","18,17,18,15,17,16","H"],["Comandante","10","18,18,18,16,18,16","H"],["Capitão","12","19,18,18,16,18,16","H"],["Comodoro","14","20,19,19,17,18,17","H"],["Contra-Almirante","16","20,20,19,18,18,18","H"],["Vice-Almirante","18","22,21,20,20,20,20","H"],["Almirante","20","23,23,20,20,20,20","H"],["Almirante de Frota","22","26,24,20,20,20,20","H"],["PX Series","13","20,19,19,10,10,10","M"],["PX Mark III Series","17","20,20,20,10,10,10","M"],["PX Seraphim Series","20","24,24,24,16,16,16","M"],["Agente Em Treinamento","2","16,16,15,10,10,10","H"],["Agente","4","17,16,16,18,14,12","H"],["Agente Experiente","9","18,17,18,15,17,16","H"],["Agente Líder","13","20,19,19,17,18,17","H"],["Agente Mascarado","17","22,21,20,20,20,20","H"],["Ajudante","1/8","14,12,10,10,10,10","H"],["Vigia","1/4","14,12,11,10,10,10","H"],["Pirata Novato","1/2","14,14,12,10,10,10","H"],["Pirata Novato Atirador","1","14,16,12,10,10,10","H"],["Pirata","2","16,14,15,10,11,11","H"],["Pirata Atirador","3","16,16,16,11,16,13","H"],["Pirata Lutador","4","18,16,16,12,14,16","H"],["Pirata Espadachim","5","18,17,17,12,14,16","H"],["Pirata Ardiloso","6","14,18,17,12,16,14","H"],["Pirata Robusto","7","18,16,17,15,17,15","H"],["Pirata Combatente","8","18,18,18,15,17,16","H"],["Pirata Veterano","9","18,18,18,16,18,16","H"],["Pirata Infame","11","19,18,18,16,18,16","H"],["Pirata Infame - Arruaceiro","13","20,18,18,14,18,18","H"],["Pirata Infame - Espadachim","15","20,20,19,18,18,18","H"],["Pirata Imediato","17","22,21,20,20,20,20","H"],["Pirata Capitão","19","23,23,20,20,20,20","H"],["Pirata Imperador","21","26,24,20,20,20,20","H"],["King Bull","9","22,9,19,12,12,14","H"],["Rakuba Bull","4","18,12,16,5,10,13","A"],["Yagara Bull","2","15,13,12,8,10,12","A"],["Camelo","1/2","14,14,12,12,16,12","A"],["Cobra Bélica","1","11,20,13,10,10,10","A"],["Den Den Mushi Pequeno","0","2,8,10,10,10,10","A"],["Den Den Mushi Grande","0","6,8,12,10,10,10","A"],["Erimaki Runner","1/4","10,16,12,10,9,10","A"],["Expresso Camarão","5","24,13,16,6,10,10","A"],["F-Wani","3","16,19,15,7,10,10","A"],["Lesma-Do-Mar Territorial","0","7,12,10,5,10,10","A"],["News Coo","0","8,11,10,13,11,10","A"],["Pato Supersônico","3","15,18,14,14,16,14","A"],["Peixe Voador","2","13,16,12,6,8,8","A"],["Super Expresso Camarão","6","28,11,16,4,4,8","A"],["Tartaruga Viajante","1","15,10,14,8,11,10","A"],["White Walkie","2","19,7,17,10,10,6","A"],["Agehaguera","12","13,18,14,6,10,14","A"],["Bagre Visitante","4","22,11,18,6,10,11","A"],["Baku Zame","11","22,14,18,4,10,14","A"],["Baleia Insular","20","30,6,26,15,20,20","A"],["Bananawani","9","24,11,18,5,10,11","A"],["Basilisco","11","23,14,18,6,10,14","A"],["Besouro Hércules Gigante","11","19,17,16,3,10,10","A"],["Besouro Rinoceronte Gigante","12","20,16,18,3,10,10","A"],["Blugori","13","20,19,18,9,10,17","A"],["Cachorro de Batalha","10","21,15,16,8,13,12","A"],["Caranguejo Carreto","8","20,13,17,12,13,12","A"],["Centopeia Gigante do Mar","15","24,10,20,7,16,17","A"]];
 const ATTRS=['FOR','DES','CON','SAB','PRE','VON'];
 const ATTR_NAME={FOR:'Força',DES:'Destreza',CON:'Constituição',SAB:'Sabedoria',PRE:'Presença',VON:'Vontade'};
 const DMG_TYPES=['Ácido','Contundente','Cortante','Elétrico','Energia','Fogo','Frio','Perfurante','Psíquico','Trovejante','Veneno','Verdadeiro'];
@@ -370,6 +372,33 @@ f(GS('Lunarianos'),'manipFogo','Manipulação do Fogo','pod',[['dmg']],'Ação p
 f(GS('Lunarianos'),'chamaDivina','Chama Divina','bon',[['nd',1]],'No início do turno: imune a dano (exceto Verdadeiro) e Incapacitada, ou vantagem em todos os ataques. 3 usos, depois ação poderosa + 4 PP.');
 f(GS('Minks'),'electro','Electro Dominado','pod',[['dmg']],'Ação poderosa: ataque com +2d10 de dano Elétrico.','dano extra (padrão 2d10)',{def:'2d10'});
 f(GS('Minks'),'sulong','Forma Sulong Dominada','asp',0,'Com lua cheia à vista: vantagem em ataques e Salvaguardas; ataques contra ela têm desvantagem.');
+// Traços de espécie do Livro do Jogador (cap. 2) úteis em combate
+const LJ='Livro do Jogador';
+f(GS('Humanos'),'adaptacao','Adaptação','asp',0,'Proficiência em 3 perícias à escolha (exceto Haki, Sobrenatural e Sorte). Marque-as no módulo de perícias.',undefined,{src:LJ});
+f(GS('Anões'),'piscar','Piscar','asp',0,'3/dia, sem ação: desaparece e reaparece num espaço desocupado visível a até 9 m, se não estiver Impedido.',undefined,{src:LJ});
+f(GS('Anões'),'hospede','Hóspede Feérico','asp',0,'Ocupa o espaço de uma criatura Média ou maior voluntária. Não pode ser alvo de ataques nem de Salvaguardas; sofre metade do dano dirigido ao hospedeiro.',undefined,{src:LJ});
+f(GS('Celestiais'),'herancaCel','Herança Cultural','asp',0,'Proficiente com todos os dials; carrega dials cotidianos e um dial bélico (Guia do Narrador).',undefined,{src:LJ});
+f(GS('Gigantes'),'corpoAssust','Corpo Assustador','asp',0,'+2 em Testes de Presença (Intimidação). Técnicas limitadas a alvos Grandes ou menores também afetam Enormes.',undefined,{src:LJ});
+f(GS('Lunarianos'),'heat','Heat','bon',[['dmg']],'1×/rodada, com ação bônus (ou junto do ataque), soma 1d10 de dano de Fogo a uma jogada de ataque.','dano extra (padrão 1d10)',{def:'1d10',src:LJ});
+f(GS('Lunarianos'),'chamasCostas','Manipulação do Fogo (chamas nas costas)','asp',0,'Enquanto o fogo das costas se mantém: resistência a Fogo (marque em Defesa), ilumina 6 m e manipula uma esfera de fogo (1d4).',undefined,{src:LJ});
+f(GS('Minks'),'electroLJ','Electro','bon',[['dmg']],'1×/rodada, com ação bônus (ou junto do ataque), soma 1d10 de dano Elétrico a uma jogada de ataque.','dano extra (padrão 1d10)',{def:'1d10',src:LJ});
+f(GS('Minks'),'instintos','Instintos Animalescos','asp',0,'Diante de seu objeto de fraqueza, Salvaguarda de Vontade CD 15 ou fica Atordoado ("distraído") por 1d4 turnos.',undefined,{src:LJ});
+f(GS('Povo do Mar'),'criaturaMar','Criatura do Mar','asp',0,'Respira no ar e na água; brânquias ressecadas ou bloqueadas podem sufocá-lo submerso.',undefined,{src:LJ});
+f(GS('Povo do Mar'),'corpoMarinho','Corpo Marinho (Homem-peixe)','asp',0,'Recebe 1 Traço Comum de Zoan do animal marinho ancestral (dentes, barbatanas, tentáculos etc.).',undefined,{src:LJ});
+f(GS('Povo do Mar'),'natacaoSup','Natação Superior (Sireno)','bon',0,'18 m de nado e pode usar "Disparada" como ação bônus enquanto nada.',undefined,{src:LJ});
+const SPECIES={
+ '':{n:'— não definida',feats:[]},
+ humano:{n:'Humano',size:'Médio',walk:9,swim:4.5,feats:['adaptacao'],note:'O Guia não lista traços de combate para humanos. O Livro dá proficiência em 3 perícias. Tamanho usual: Médio (variantes podem ser Pequenas).'},
+ anao:{n:'Anão',size:'Miúdo',walk:9,swim:4.5,feats:['pequenoGig','misterioFadas','piscar','hospede'],note:'Tamanho Miúdo (10–15 cm).'},
+ celestial:{n:'Celestial',size:'Médio',walk:12,swim:3,feats:['herancaCel'],note:'O Guia não lista traços de combate para celestiais. Deslocamento de 12 m.'},
+ gigante:{n:'Gigante',size:'Enorme',walk:9,swim:3,feats:['forcaColossal','guerreiroNato','corpoAssust'],note:'Tamanho Enorme (13–20 m): armas manufaturadas causam o triplo de dados.'},
+ lunariano:{n:'Lunariano',size:'Médio',walk:9,swim:3,feats:['manipFogo','chamaDivina','heat','chamasCostas'],note:'Chama Divina soma +1 direto ao ND.'},
+ mink:{n:'Mink',size:'Médio',walk:9,swim:4.5,feats:['electro','sulong','electroLJ','instintos'],note:'Pode ser Pequeno, Médio ou Grande conforme a variante (ágil, comum ou robusto). Ajuste o tamanho se precisar.'},
+ homemPeixe:{n:'Povo do Mar · Homem-peixe',size:'Médio',walk:9,swim:15,feats:['forcaSup','vincTele','criaturaMar','anfibio','corpoMarinho'],note:'Médio ou Grande. Nado de 15 m.'},
+ sireno:{n:'Povo do Mar · Sireno',size:'Médio',walk:9,swim:18,feats:['forcaSup','vincTele','criaturaMar','anfibio','natacaoSup'],note:'Médio ou Grande. Nado de 18 m.'},
+ mestico:{n:'Mestiço',feats:[],note:'Livro do Jogador: escolhe 1 Benefício de cada espécie de origem. Tamanho = média dos menores tamanhos das duas espécies; deslocamento = o maior entre elas.'},
+ outro:{n:'Outra / não humanoide',feats:[]}
+};
 // Haki (características)
 const GH=s=>'Haki · '+s;
 f(GH('Armamento'),'destrInt','Destruição Interior','asp',0,'As jogadas de dano se tornam dano Verdadeiro.');
@@ -423,7 +452,7 @@ const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){retu
 
 /* ============ ESTADO ============ */
 function blank(){return{
-  name:'Novo Inimigo',size:'Médio',hdDie:'',type:'Humanoide',classif:'',dreams:'',ndTarget:6,
+  name:'Novo Inimigo',species:'',species2:'',species3:'',size:'Médio',hdDie:'',type:'Humanoide',classif:'',dreams:'',ndTarget:6,
   attrs:{FOR:10,DES:10,CON:10,SAB:10,PRE:10,VON:10},
   speed:{walk:9,swim:4.5,fly:0,climb:0,burrow:0},
   caMode:'natural',caNat:0,caManual:13,
@@ -442,20 +471,20 @@ function atk(o){return Object.assign({id:uid(),name:'Ataque',kind:'melee',wt:'we
 function tech(o){return Object.assign({id:uid(),name:'Técnica',cat:'combate',grau:1,pp:1,use:'livre',perDay:5,act:'poderosa',form:'ataque',attr:'FOR',dn:2,die:10,flat:0,type:'Contundente',targets:1,range:'alcance 1,5 metro, um alvo',saveAttr:'DES',effect:''},o)}
 
 /* ============ EXEMPLOS (fichas do Manual dos Inimigos) ============ */
-function presetSargento(){const s=blank();Object.assign(s,{name:'Sargento',type:'Humanoide',classif:'Marinha',size:'Médio',hdDie:12,ndTarget:5,hd:9,caMode:'manual',caManual:15,cdAttr:'FOR',
+function presetSargento(){const s=blank();Object.assign(s,{name:'Sargento',species:'humano',type:'Humanoide',classif:'Marinha',size:'Médio',hdDie:12,ndTarget:5,hd:9,caMode:'manual',caManual:15,cdAttr:'FOR',
  attrs:{FOR:16,DES:14,CON:15,SAB:10,PRE:10,VON:10},speed:{walk:12,swim:12,fly:0,climb:0,burrow:0},saves:['FOR','DES','CON'],skills:{Atletismo:1,'Percepção':1,'Sobrevivência':1}});
  const a1=atk({name:'Ataque Desarmado',wt:'unarmed',dn:1,die:4,type:'Contundente',scale:false}),a2=atk({name:'Sabre',dn:1,die:6}),a3=atk({name:'Pistola',kind:'ranged',attr:'DES',dn:1,die:6,type:'Contundente',reach:'distância 9/15 metros'}),a4=atk({name:'Mosquete',kind:'ranged',attr:'DES',dn:1,die:8,type:'Contundente',reach:'distância 18/24 metros'});
  s.attacks=[a1,a2,a3,a4];s.multi=[{atk:a2.id,times:2}];
  s.feats={investida:{val:'3d6'},taticasMarc:{},redirecionar:{}};
  s.techs=[tech({name:'Golpe Poderoso',grau:1,pp:1,dn:2,die:10,type:'Contundente, Cortante ou Perfurante'})];return s}
-function presetEspadachim(){const s=blank();Object.assign(s,{name:'Pirata Espadachim',type:'Humanoide',classif:'Pirata',size:'Médio',hdDie:10,ndTarget:8,hd:26,caMode:'manual',caManual:17,cdAttr:'FOR',
+function presetEspadachim(){const s=blank();Object.assign(s,{name:'Pirata Espadachim',species:'humano',type:'Humanoide',classif:'Pirata',size:'Médio',hdDie:10,ndTarget:8,hd:26,caMode:'manual',caManual:17,cdAttr:'FOR',
  attrs:{FOR:18,DES:17,CON:17,SAB:12,PRE:14,VON:16},speed:{walk:12,swim:12,fly:0,climb:0,burrow:0},saves:['FOR','DES'],skills:{Acrobacia:1,Atletismo:1,'Intimidação':1,'Provocação':1},senses:''});
  const a1=atk({name:'Ataque Desarmado',wt:'unarmed',dn:1,die:6,type:'Contundente',scale:false}),a2=atk({name:'Sabre',dn:1,die:6});
  s.attacks=[a1,a2];s.multi=[{atk:a2.id,times:3}];
  s.feats={treinoCombate:{val:'1'},crueldade:{val:'2d6'},aparar:{},ao:{}};
  s.techs=[tech({name:'Vento Cortante',grau:1,pp:1,form:'area',dn:2,die:6,type:'Cortante',targets:2,range:'12 metros (Cone)',saveAttr:'DES'}),
           tech({name:'Lua Cortante',grau:2,pp:3,form:'area',dn:4,die:8,type:'Cortante',targets:2,range:'9 metros de comprimento e 1,5 metro de largura (Linha)',saveAttr:'DES'})];return s}
-function presetAgente(){const s=blank();Object.assign(s,{name:'Agente',type:'Humanoide',classif:'Cipher Pol',size:'Médio',hdDie:12,ndTarget:7,hd:17,caMode:'manual',caManual:16,cdAttr:'DES',
+function presetAgente(){const s=blank();Object.assign(s,{name:'Agente',species:'humano',type:'Humanoide',classif:'Cipher Pol',size:'Médio',hdDie:12,ndTarget:7,hd:17,caMode:'manual',caManual:16,cdAttr:'DES',
  attrs:{FOR:17,DES:16,CON:16,SAB:18,PRE:14,VON:12},speed:{walk:12,swim:12,fly:0,climb:0,burrow:0},saves:['FOR','DES'],skills:{Atletismo:1,Furtividade:2,'Percepção':1}});
  const a1=atk({name:'Ataque Desarmado',wt:'unarmed',dn:2,die:6,type:'Contundente',scale:false}),a2=atk({name:'Pistola',kind:'ranged',attr:'DES',dn:2,die:6,type:'Contundente',reach:'distância 9/15 metros'});
  s.attacks=[a1,a2];s.multi=[{atk:a1.id,times:2}];
@@ -636,6 +665,44 @@ const chipArr=(arrKey,list,selected)=>`<div class="chips">${list.map(x=>`<label 
 let openState=store.get('opEnemyOpen')||{};
 function mod$(id,step,title,hint,body,open=true){const o=openState[id]!==undefined?openState[id]:open;return`<details class="mod" data-mod="${id}"${o?' open':''}><summary><span class="step">${step}</span><h2>${title}</h2><span class="hint">${hint}</span></summary><div class="body">${body}</div></details>`}
 let featFilter='';
+function featRow(ft,src,px=''){const st=S.feats[ft.id];const none=!ft.e.length;return`<div class="feat${st?' on':''}">
+  <input type="checkbox" id="ft_${px}${ft.id}" data-feat="${ft.id}"${st?' checked':''}>
+  <label for="ft_${px}${ft.id}"><span class="fn">${esc(ft.n)}</span><span class="fe${none?' none':''}">${esc(effText(ft))}</span>${src?`<span class="fe none">· ${esc(src)}</span>`:''}</label>
+  <div class="ft">${esc(ft.t)}</div>
+  ${st&&ft.val?`<div class="fv"><span class="note">${esc(ft.val)}:</span><input id="fv_${px}${ft.id}" data-featval="${ft.id}" value="${esc(st.val??ft.def??'')}" placeholder="${ft.txtVal?'texto':'ex.: 4d6'}">${ft.txtVal?'':`<span class="note" id="fva_${px}${ft.id}" data-fva="${ft.id}">média ${fmt(diceAvg(st.val))}</span>`}</div>`:''}
+</div>`}
+function speciesPanel(){
+  const ids=[];const add=k=>{const sp=SPECIES[k];if(sp)sp.feats.forEach(id=>{if(!ids.includes(id))ids.push(id)})};
+  add(S.species);if(S.species==='mestico'){add(S.species2);add(S.species3)}
+  const sp=SPECIES[S.species]||SPECIES[''];
+  let h=`<div class="grid wide">${fld('Espécie',sel('species',Object.entries(SPECIES).map(([k,v])=>[k,v.n]),S.species,'data-re="1"'))}`;
+  if(S.species==='mestico'){const opts=Object.entries(SPECIES).filter(([k])=>k&&k!=='mestico'&&k!=='outro').map(([k,v])=>[k,v.n]);
+    h+=fld('Espécie de origem 1',sel('species2',[['','—'],...opts],S.species2,'data-re="1"'))+fld('Espécie de origem 2',sel('species3',[['','—'],...opts],S.species3,'data-re="1"'))}
+  h+='</div>';
+  if(sp.note)h+=`<p class="note">${esc(sp.note)}</p>`;
+  if(ids.length)h+=`<div class="sub">Características opcionais da espécie</div><div>${ids.map(id=>{const ft=FEAT_BY_ID[id];return ft?featRow(ft,ft.src||'Guia do Narrador','sp_'):''}).join('')}</div>`;
+  else if(S.species&&S.species!=='outro')h+=`<p class="note">Escolha as espécies de origem para ver as características.</p>`;
+  return h}
+function attrRef(){
+  const tIdx=+S.ndTarget;const grp=S.type==='Animal'?['A']:['H','M'];
+  const pool=MANUAL_ATTRS.filter(x=>grp.includes(x[3])).map(x=>({n:x[0],i:ND_LABELS.indexOf(x[1]),a:x[2].split(',').map(Number)}));
+  let d=0,ex=[];while(!ex.length&&d<34){ex=pool.filter(p=>Math.abs(p.i-tIdx)===d);d++}d--;
+  const sums=ex.map(p=>p.a.reduce((s,v)=>s+v,0)),maxs=ex.map(p=>Math.max(...p.a)),mins=ex.map(p=>Math.min(...p.a));
+  const my=ATTRS.map(a=>+S.attrs[a]||0),mySum=my.reduce((s,v)=>s+v,0),myMax=Math.max(...my);
+  const rng=a=>Math.min(...a)===Math.max(...a)?`${Math.min(...a)}`:`${Math.min(...a)}–${Math.max(...a)}`;
+  const chip=(v,a)=>v<Math.min(...a)?`<span class="pill">abaixo</span>`:v>Math.max(...a)?`<span class="pill">acima</span>`:`<span class="pill teal">dentro</span>`;
+  const avg=Math.round(sums.reduce((s,v)=>s+v,0)/sums.length);
+  const lab=d===0?`ND ${ND_LABELS[tIdx]}`:`ND mais próximo com exemplo (${[...new Set(ex.map(p=>ND_LABELS[p.i]))].join(', ')})`;
+  return`<div class="card" id="attrRef">
+    <div class="card-h"><b>Referência do Manual · ${esc(lab)}</b><span class="note">${S.type==='Animal'?'animais':'humanoides e máquinas'} · ${ex.length} ficha${ex.length>1?'s':''}</span></div>
+    <div class="grid">
+      <div><div class="note">Soma dos 6 atributos</div><b style="font-family:var(--mono)">${rng(sums)}</b> <span class="note">média ${avg}</span><div class="note">sua: <b>${mySum}</b> ${chip(mySum,sums)}</div></div>
+      <div><div class="note">Maior atributo</div><b style="font-family:var(--mono)">${rng(maxs)}</b><div class="note">seu: <b>${myMax}</b> ${chip(myMax,maxs)}</div></div>
+      <div><div class="note">Menor atributo</div><b style="font-family:var(--mono)">${rng(mins)}</b><div class="note">seu: <b>${Math.min(...my)}</b> ${chip(Math.min(...my),mins)}</div></div>
+    </div>
+    <div>${ex.slice(0,6).map((p,k)=>`<div class="row" style="justify-content:space-between;border-top:1px dashed var(--line);padding-top:4px;margin-top:4px"><span><b>${esc(p.n)}</b> <span class="note">ND ${ND_LABELS[p.i]}</span> <span style="font-family:var(--mono);font-size:12px">${ATTRS.map((a,j)=>`${a} ${p.a[j]}`).join(' · ')}</span></span><button class="small ghost" data-copyattrs="${p.a.join(',')}">Usar estes valores</button></div>`).join('')}</div>
+    <p class="note">O Guia não define pontos de atributo por ND: só limita cada valor entre 1 e 30 (passo 5) e manda copiar criaturas parecidas do Manual. Esta faixa sai das 73 fichas do Manual dos Inimigos. Para comparar: um personagem de jogador começa com 15, 14, 13, 12, 10 e 8 (soma 72), e a espécie não leva nenhum valor acima de 20. Atributos não entram no cálculo do ND, mas mudam ataque, dano, CD, PV e salvaguardas.</p>
+  </div>`}
 function renderEditor(){
   const e=[];
   e.push(mod$('id','Passos 1–6','Identidade','nome, tamanho, tipo e ND pretendido',`
@@ -647,9 +714,13 @@ function renderEditor(){
       ${fld('Sonhos e caminhos',inp('dreams',S.dreams,'text','placeholder="imparcial se não tiver moral"'))}
       ${fld('ND pretendido',sel('ndTarget',ND_LABELS.map((l,i)=>[i,`ND ${l} · prof. ${sg(T[i].prof)} · ${T[i].pp} PP`]),S.ndTarget,'data-re="1"'))}
     </div>
-    <p class="note">O ND pretendido define o bônus de proficiência usado nos ataques e CDs, a faixa dos multiplicadores de PV virtual e as condições de ND das características (Guia, passos 1 e 6).</p>`));
+    <p class="note">O ND pretendido define o bônus de proficiência usado nos ataques e CDs, a faixa dos multiplicadores de PV virtual e as condições de ND das características (Guia, passos 1 e 6).</p>
+    <div class="sub">Espécie</div>
+    ${speciesPanel()}
+    <p class="note">Ao escolher a espécie, o tamanho e o deslocamento viram os padrões dela, e as características opcionais aparecem logo acima. Marque só as que quiser: cada uma mostra o efeito no ND.</p>`));
   e.push(mod$('attr','Passo 5 · 15 · 18','Atributos, salvaguardas e perícias','valores de 1 a 30',`
     <div class="attrs">${ATTRS.map(a=>`<div class="attr"><b>${a}</b>${inp('attrs.'+a,S.attrs[a],'number','min="1" max="30"')}<div class="mod" id="m_${a}">${sg(mod(S.attrs[a]))}</div></div>`).join('')}</div>
+    ${attrRef()}
     <div class="sub">Bônus em Salvaguardas <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">· 3–4 bônus = CR virtual +2 · todos = +4</span></div>
     ${chipArr('saves',ATTRS,S.saves)}
     <div class="sub">Perícias <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">· não afetam o ND</span></div>
@@ -735,18 +806,13 @@ function renderEditor(){
     <div class="row"><button class="small" id="addTech">Adicionar Técnica de Combate</button><button class="small" id="addAux">Adicionar Técnica Auxiliar</button>
     ${fld('Pontos de Poder (vazio = tabela)',inp('ppOverride',S.ppOverride,'number','style="max-width:110px"'))}</div>`));
   // características
-  const groups={};F.forEach(ft=>{(groups[ft.g]=groups[ft.g]||[]).push(ft)});
+  const groups={};F.forEach(ft=>{if(ft.g.startsWith('Espécie'))return;(groups[ft.g]=groups[ft.g]||[]).push(ft)});
   const q=featFilter.trim().toLowerCase();
   const groupHtml=Object.entries(groups).map(([g,list])=>{
     const items=list.filter(ft=>!q||ft.n.toLowerCase().includes(q)||ft.t.toLowerCase().includes(q));if(!items.length)return'';
     const on=list.filter(ft=>S.feats[ft.id]).length;const key='fg_'+g;
     return`<details class="feat-group" data-fg="${esc(g)}"${(openState[key]||q)?' open':''}><summary>${esc(g)} ${on?`<span class="pill teal">${on}</span>`:''}<span class="note">${list.length}</span></summary>
-      ${items.map(ft=>{const st=S.feats[ft.id];const none=!ft.e.length;return`<div class="feat${st?' on':''}">
-        <input type="checkbox" id="ft_${ft.id}" data-feat="${ft.id}"${st?' checked':''}>
-        <label for="ft_${ft.id}"><span class="fn">${esc(ft.n)}</span><span class="fe${none?' none':''}">${esc(effText(ft))}</span></label>
-        <div class="ft">${esc(ft.t)}</div>
-        ${st&&ft.val?`<div class="fv"><span class="note">${esc(ft.val)}:</span><input id="fv_${ft.id}" data-featval="${ft.id}" value="${esc(st.val??ft.def??'')}" placeholder="${ft.txtVal?'texto':'ex.: 4d6'}">${ft.txtVal?'':`<span class="note" id="fva_${ft.id}">média ${fmt(diceAvg(st.val))}</span>`}</div>`:''}
-      </div>`}).join('')}</details>`}).join('');
+      ${items.map(ft=>featRow(ft)).join('')}</details>`}).join('');
   const customRows=S.custom.map((c,i)=>`<div class="card"><div class="card-h"><input class="name" data-k="custom.${i}.name" id="cn_${c.id}" value="${esc(c.name)}"><button class="small ghost danger" data-del="custom" data-i="${i}">Remover</button></div>
     <div class="grid">${fld('Aparece em',`<select data-k="custom.${i}.slot" id="cs_${c.id}">${opt([['asp','Aspectos'],['acao','Ações'],['bon','Ações Bônus'],['rea','Reações'],['pod','Ações Poderosas']],c.slot)}</select>`)}
     ${fld('Efeito no ND',`<select data-k="custom.${i}.eff" id="ce_${c.id}">${opt([['none','(–) nenhum'],['ca','CR virtual +'],['atk','Bônus de ataque virtual +'],['hpPct','PV virtual +%'],['hpMul','PV virtual ×'],['hp3x','PV virtual +3× valor'],['dmg','Soma ao dano por rodada'],['dmgR1','Dano só na 1ª rodada'],['dmgPct','Dano virtual +%'],['nd','ND +']],c.eff)}</select>`)}
@@ -841,6 +907,7 @@ function buildBlock(R){
     extra:[+sp.swim?`Nado: ${String(sp.swim).replace('.',',')} metros`:'',+sp.fly?`Voo: ${String(sp.fly).replace('.',',')} metros`:'',+sp.climb?`Escalada: ${String(sp.climb).replace('.',',')} metros`:'',+sp.burrow?`Escavação: ${String(sp.burrow).replace('.',',')} metros`:''].filter(Boolean)};
   const car=[];
   if(S.type==='Animal'||S.classif)car.push(`<em>Classificação:</em> ${esc([S.type!=='Humanoide'?S.type:'',S.classif].filter(Boolean).join(', '))}.`);
+  if(S.species&&S.species!=='outro'){const nm=S.species==='mestico'?`Mestiço (${[S.species2,S.species3].filter(Boolean).map(k=>SPECIES[k].n).join(' e ')||'origens não definidas'})`:SPECIES[S.species].n;car.push(`<em>Espécie:</em> ${esc(nm)}.`)}
   if(S.size!=='Médio'||S.type==='Animal')car.push(`<em>Tamanho:</em> ${esc(S.size)}.`);
   const sk=SKILLS.filter(([n])=>S.skills[n]).map(([n,a])=>`${n} ${sg(mod(S.attrs[a])+prof*S.skills[n])}`);
   if(sk.length)car.push(`<em>Perícia:</em> ${sk.join(', ')}.`);
@@ -907,7 +974,8 @@ function softUpdate(){ // atualiza números do editor sem redesenhar
   S.attacks.forEach(a=>{const c=R.aCalc[a.id];const p=$('#ap_'+a.id);if(p)p.textContent=`${sg(c.bonus)} · ${c.avg} (${c.dn}d${c.die}${c.fl?sg(c.fl):''})`;const n=$('#an2_'+a.id);if(n)n.textContent=c.notes.length?'Inclui: '+c.notes.join(', '):''});
   S.techs.forEach(t=>{const c=R.tc[t.id];const p=$('#tp_'+t.id);if(p)p.textContent=t.form==='aux'?'sem dano':`${c.avg} dano${c.tg>1?` (${c.one} × ${c.tg})`:''}`});
   const pb=$('#ppBudget');if(pb)pb.textContent=R.budget;
-  for(const id in S.feats){const el=$('#fva_'+id);if(el)el.textContent='média '+fmt(diceAvg(S.feats[id].val))}
+  const ar=$('#attrRef');if(ar)ar.outerHTML=attrRef();
+  document.querySelectorAll('[data-fva]').forEach(el=>{const st=S.feats[el.dataset.fva];if(st)el.textContent='média '+fmt(diceAvg(st.val))})
   refresh(R)}
 
 /* ============ EVENTOS ============ */
@@ -917,6 +985,7 @@ function coerce(el){if(el.type==='checkbox')return el.checked;if(el.type==='numb
   const k=el.dataset.k||'';if(/^(ndTarget|haki\.|attacks\.\d+\.die|techs\.\d+\.(die|grau)|hdDie)/.test(k))return el.value===''?'':+el.value;return el.value}
 document.addEventListener('input',ev=>{const el=ev.target;
   if(el.id==='featSearch'){featFilter=el.value;const pos=el.selectionStart;renderEditor();const s=$('#featSearch');s.focus();s.setSelectionRange(pos,pos);return}
+  if(el.dataset.k==='species'){S.species=el.value;const sp=SPECIES[el.value];if(sp&&sp.size){S.size=sp.size;S.speed.walk=sp.walk;S.speed.swim=sp.swim}if(el.value&&el.value!=='outro'&&S.type!=='Humanoide')S.type='Humanoide';renderEditor();if(sp&&sp.size)toast(`Tamanho ${sp.size}, deslocamento ${String(sp.walk).replace('.',',')} m e nado ${String(sp.swim).replace('.',',')} m aplicados`);return}
   if(el.dataset.k){setPath(el.dataset.k,coerce(el));if(el.dataset.re||el.tagName==='SELECT'&&/ndTarget|size|caMode|hpMode|\.kind|\.cat|\.use|\.form|haki/.test(el.dataset.k))renderEditor();else softUpdate();return}
   if(el.dataset.arr){const arr=S[el.dataset.arr];const v=el.dataset.val;const i=arr.indexOf(v);if(el.checked&&i<0)arr.push(v);if(!el.checked&&i>=0)arr.splice(i,1);softUpdate();return}
   if(el.dataset.skill){const v=+el.value;if(v)S.skills[el.dataset.skill]=v;else delete S.skills[el.dataset.skill];softUpdate();return}
@@ -933,6 +1002,7 @@ document.addEventListener('toggle',ev=>{const d=ev.target;if(d.dataset&&d.datase
 document.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;
   if(b.dataset.del){const arr=S[b.dataset.del];const [rm]=arr.splice(+b.dataset.i,1);if(b.dataset.del==='attacks'){S.multi=S.multi.filter(m=>m.atk!==rm.id);if(S.leg.atk===rm.id)S.leg.atk=''}renderEditor();return}
   if(b.dataset.suggest!==undefined){const t=S.techs[+b.dataset.suggest];if(t.form==='area'){t.dn=[2,4,6,8,10,12,14][t.grau-1];t.die=6}else{t.dn=[2,4,6,8,10,12,15][t.grau-1];t.die=10}renderEditor();return}
+  if(b.dataset.copyattrs){const v=b.dataset.copyattrs.split(',').map(Number);ATTRS.forEach((a,i)=>S.attrs[a]=v[i]);renderEditor();toast('Atributos aplicados');return}
   if(b.dataset.adopt){S.ndTarget=lastR.finalIdx;renderEditor();toast(`ND pretendido agora é ${ND_LABELS[S.ndTarget]}`);return}
   switch(b.id){
     case'addMulti':S.multi.push({atk:S.attacks[0].id,times:1});renderEditor();break;
