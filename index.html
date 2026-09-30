@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Estaleiro de Inimigos</title>
+<title>Estaleiro de PdNs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Libre+Franklin:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
 <style>
@@ -136,6 +136,32 @@ table.ref tr.hf td{font-weight:700;outline:1.5px solid var(--ink);outline-offset
 .modal h3{margin:0;font-family:var(--display);font-weight:400;font-size:1.6rem}
 .lib-item{display:flex;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:6px 0}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:6px;font-weight:600;z-index:20}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px;border-bottom:2px solid var(--line)}
+.tabs button{border:0;border-radius:6px 6px 0 0;background:transparent;padding:9px 14px;margin-bottom:-2px;border-bottom:2px solid transparent;color:var(--muted)}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--brass);background:var(--surface)}
+.tabbody{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding-top:12px;box-shadow:var(--shadow)}
+.pt-thumb{width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.sb-portrait{display:block;width:140px;max-width:40%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:2px solid var(--brass);margin:0 auto 10px}
+.sb-role{text-align:center;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);margin:-4px 0 8px}
+.play{display:grid;gap:12px}
+.pl-head{display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:14px}
+.pl-portrait{width:96px;height:96px;object-fit:cover;border-radius:10px;border:2px solid var(--brass)}
+.pl-id{flex:1 1 220px;display:grid;gap:6px}
+.pl-name{font-family:var(--display);font-weight:400;font-size:2.2rem;line-height:1;margin:0}
+.pl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.pl-grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.pl-box{padding:12px 14px;display:grid;gap:8px;align-content:start}
+.pl-box h3{margin:0;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--brass)}
+.pl-big{font-family:var(--display);font-size:2.4rem;line-height:1}
+.pl-big small{font-family:var(--body);font-size:13px;color:var(--muted)}
+.bar{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;transition:width .2s}
+.pl-row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px dashed var(--line);padding:6px 0}
+.pl-row.off{opacity:.55}
+.pl-conds{display:grid;gap:4px;font-size:12px;margin-top:6px;border-left:3px solid var(--accent);padding-left:8px}
+.pl-log{display:grid;gap:3px;font-size:12.5px;max-height:320px;overflow:auto}
+.pl-log .crit{color:var(--ok)}.pl-log .fail{color:var(--danger)}
+button:disabled{opacity:.5;cursor:not-allowed}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -144,11 +170,12 @@ table.ref tr.hf td{font-weight:700;outline:1.5px solid var(--ink);outline-offset
 <div class="wrap">
   <header class="top">
     <div>
-      <h1>Estaleiro de Inimigos</h1>
-      <p>Monte inimigos do OP RPG módulo por módulo. O Nível de Desafio é recalculado a cada mudança, seguindo o passo a passo de <em>Criando um Inimigo</em> (Guia do Narrador 2.0, cap. 3.13), com todos os PV, CR, bônus de ataque e dano virtuais das características.</p>
+      <h1>Estaleiro de PdNs</h1>
+      <p>Monte PdNs do OP RPG (inimigos, chefes, aliados e neutros) módulo por módulo. O Nível de Desafio é recalculado a cada mudança, seguindo o passo a passo de <em>Criando um Inimigo</em> (Guia do Narrador 2.0, cap. 3.13), com todos os PV, CR, bônus de ataque e dano virtuais das características.</p>
     </div>
     <div class="toolbar">
       <select id="presetSel" aria-label="Carregar exemplo"></select>
+      <button id="btnPlay" class="primary">Modo de jogo</button>
       <button id="btnNew">Nova ficha</button>
       <button id="btnLib">Biblioteca</button>
       <button id="btnIO">Importar / exportar</button>
@@ -452,7 +479,7 @@ const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){retu
 
 /* ============ ESTADO ============ */
 function blank(){return{
-  name:'Novo Inimigo',species:'',species2:'',species3:'',size:'Médio',hdDie:'',type:'Humanoide',classif:'',dreams:'',ndTarget:6,
+  name:'Novo PdN',role:'inimigo',portrait:'',prof:{id:'',grad:0,sk:[],hide:[]},fruit:{name:'',type:'',cat:'',user:'',swap:false,traits:'',notes:'',mps:[]},play:null,species:'',species2:'',species3:'',size:'Médio',hdDie:'',type:'Humanoide',classif:'',dreams:'',ndTarget:6,
   attrs:{FOR:10,DES:10,CON:10,SAB:10,PRE:10,VON:10},
   speed:{walk:9,swim:4.5,fly:0,climb:0,burrow:0},
   caMode:'natural',caNat:0,caManual:13,
@@ -468,7 +495,7 @@ function blank(){return{
   notes:''
 }}
 function atk(o){return Object.assign({id:uid(),name:'Ataque',kind:'melee',wt:'weapon',attr:'FOR',dn:1,die:6,flat:0,type:'Cortante',reach:'alcance 1,5 metro',scale:true,bonus:'',effect:''},o)}
-function tech(o){return Object.assign({id:uid(),name:'Técnica',cat:'combate',grau:1,pp:1,use:'livre',perDay:5,act:'poderosa',form:'ataque',attr:'FOR',dn:2,die:10,flat:0,type:'Contundente',targets:1,range:'alcance 1,5 metro, um alvo',saveAttr:'DES',effect:''},o)}
+function tech(o){return Object.assign({id:uid(),name:'Técnica',cat:'combate',grau:1,pp:1,use:'livre',perDay:5,act:'poderosa',form:'ataque',attr:'FOR',dn:2,die:10,flat:0,type:'Contundente',targets:1,range:'alcance 1,5 metro, um alvo',saveAttr:'DES',effect:'',conds:[],condSave:'CON',condDur:'até o final do próximo turno do alvo'},o)}
 
 /* ============ EXEMPLOS (fichas do Manual dos Inimigos) ============ */
 function presetSargento(){const s=blank();Object.assign(s,{name:'Sargento',species:'humano',type:'Humanoide',classif:'Marinha',size:'Médio',hdDie:12,ndTarget:5,hd:9,caMode:'manual',caManual:15,cdAttr:'FOR',
@@ -515,6 +542,7 @@ S=Object.assign(blank(),S);
 
 /* ============ CÁLCULO ============ */
 function activeFeats(){const out=[];for(const id in S.feats){const ft=FEAT_BY_ID[id];if(ft)out.push({ft,val:S.feats[id].val})}
+  (S.fruit&&S.fruit.mps||[]).forEach(m=>{const act=(MP_ACT.find(a=>a[0]===m.act)||MP_ACT[0]);out.push({ft:{id:m.id,n:`${m.name} (MP · ${act[1]})`,slot:MP_SLOT[m.act]||'asp',t:m.text,e:m.eff&&m.eff!=='none'?[[m.eff,+m.v||0]]:[],custom:true},val:m.v})});
   S.custom.forEach(c=>out.push({ft:{id:c.id,n:c.name,slot:c.slot,t:c.text,e:c.eff&&c.eff!=='none'?[[c.eff,+c.v||0]]:[],custom:true},val:c.val}));return out}
 function profOf(idx){return T[idx].prof}
 function sizeInfo(){return SIZES[S.size]||SIZES['Médio']}
@@ -563,7 +591,7 @@ function compute(){
   let mult=1,mlab='';
   if(resAll&&band.res>mult){mult=band.res;mlab='resistências'}
   if(invAll&&band.inv>mult){mult=band.inv;mlab='invulnerabilidades'}
-  if(S.logia&&band.logia>mult){mult=band.logia;mlab='intangibilidade Logia'}
+  if(logiaActive()&&band.logia>mult){mult=band.logia;mlab='intangibilidade Logia'}
   if(mult!==1){hpV*=mult;R.logD.push([`× ${String(mult).replace('.',',')} por ${mlab} (ND pretendido ${ND_LABELS[tIdx]})`,fmt(hpV)])}
   else if(S.res.length||S.inv.length)R.logD.push(['Resistências/invulnerabilidades sem multiplicador (menos de 3 tipos ou sem C/C/P, ou faixa ND 17+)','×1']);
   const vulAll=PHYS.every(x=>S.vul.includes(x))||S.vul.length>=3;
@@ -704,12 +732,15 @@ function attrRef(){
     <p class="note">O Guia não define pontos de atributo por ND: só limita cada valor entre 1 e 30 (passo 5) e manda copiar criaturas parecidas do Manual. Esta faixa sai das 73 fichas do Manual dos Inimigos. Para comparar: um personagem de jogador começa com 15, 14, 13, 12, 10 e 8 (soma 72), e a espécie não leva nenhum valor acima de 20. Atributos não entram no cálculo do ND, mas mudam ataque, dano, CD, PV e salvaguardas.</p>
   </div>`}
 function renderEditor(){
+  $('#btnPlay').textContent=playMode?'Voltar à edição':'Modo de jogo';$('#result').hidden=playMode;
+  if(playMode){refresh();renderPlay();return}
   const e=[];
   e.push(mod$('id','Passos 1–6','Identidade','nome, tamanho, tipo e ND pretendido',`
     <div class="grid wide">
       ${fld('Nome',inp('name',S.name))}
       ${fld('Tamanho (define o dado de vida)',sel('size',Object.keys(SIZES).map(k=>[k,`${k} (d${SIZES[k].die})`]),S.size,'data-re="1"'))}
       ${fld('Tipo',sel('type',['Humanoide','Animal','Máquina','Outro'],S.type))}
+      ${fld('Papel',sel('role',Object.entries(ROLES),S.role))}
       ${fld('Classificação / afiliação',inp('classif',S.classif,'text','placeholder="ex.: Marinha, Tipo C Comum"'))}
       ${fld('Sonhos e caminhos',inp('dreams',S.dreams,'text','placeholder="imparcial se não tiver moral"'))}
       ${fld('ND pretendido',sel('ndTarget',ND_LABELS.map((l,i)=>[i,`ND ${l} · prof. ${sg(T[i].prof)} · ${T[i].pp} PP`]),S.ndTarget,'data-re="1"'))}
@@ -717,6 +748,9 @@ function renderEditor(){
     <p class="note">O ND pretendido define o bônus de proficiência usado nos ataques e CDs, a faixa dos multiplicadores de PV virtual e as condições de ND das características (Guia, passos 1 e 6).</p>
     <div class="sub">Espécie</div>
     ${speciesPanel()}
+    <div class="sub">Retrato</div>
+    <div class="row">${S.portrait?`<img class="pt-thumb" src="${S.portrait}" alt="Retrato atual">`:''}<label class="btn" for="ptFile" style="cursor:pointer">${S.portrait?'Trocar imagem':'Escolher imagem'}</label><input type="file" id="ptFile" accept="image/*" hidden>${S.portrait?'<button class="small danger" id="ptDel">Remover retrato</button>':''}</div>
+    <p class="note">A imagem é reduzida para 480 px e salva junto da ficha. Aparece na ficha e no modo de jogo.</p>
     <p class="note">Ao escolher a espécie, o tamanho e o deslocamento viram os padrões dela, e as características opcionais aparecem logo acima. Marque só as que quiser: cada uma mostra o efeito no ND.</p>`));
   e.push(mod$('attr','Passo 5 · 15 · 18','Atributos, salvaguardas e perícias','valores de 1 a 30',`
     <div class="attrs">${ATTRS.map(a=>`<div class="attr"><b>${a}</b>${inp('attrs.'+a,S.attrs[a],'number','min="1" max="30"')}<div class="mod" id="m_${a}">${sg(mod(S.attrs[a]))}</div></div>`).join('')}</div>
@@ -798,6 +832,10 @@ function renderEditor(){
       ${fld('Alcance / área',`<input data-k="techs.${i}.range" id="tr_${t.id}" value="${esc(t.range)}">`)}
     </div>
     ${fld('Efeito',`<textarea data-k="techs.${i}.effect" id="te_${t.id}">${esc(t.effect)}</textarea>`)}
+    ${t.form!=='aux'||t.cat!=='auxiliar'?`<details class="feat-group"${(t.conds||[]).length?' open':''}><summary>Condições causadas ${(t.conds||[]).length?`<span class="pill teal">${t.conds.length}</span>`:''}<span class="note">custo em PP do Livro para Técnicas de Akuma no Mi</span></summary>
+    <div class="chips">${TECH_CONDS.map(c=>`<label class="chip" title="${esc(COND_INFO[c][1])}"><input type="checkbox" data-tcond="${i}" data-val="${esc(c)}"${(t.conds||[]).includes(c)?' checked':''}>${esc(c)} <span class="note">${COND_INFO[c][0]||'—'} PP</span></label>`).join('')}</div>
+    ${(t.conds||[]).length?`<div class="grid" style="margin-top:8px">${fld('Salvaguarda contra a condição',`<select data-k="techs.${i}.condSave" id="tcs_${t.id}">${opt(ATTRS.map(a=>[a,ATTR_NAME[a]]),t.condSave||'CON')}</select>`)}${fld('Duração',`<input data-k="techs.${i}.condDur" id="tcd_${t.id}" value="${esc(t.condDur||'')}">`)}</div>
+    <div class="pl-conds">${t.conds.map(c=>`<div><b>${esc(c)}</b> · ${COND_INFO[c][0]||'—'} PP: ${esc(COND_INFO[c][1])}</div>`).join('')}<div class="note">Soma do custo das condições: ${t.conds.reduce((s,c)=>s+COND_INFO[c][0],0)} PP. O Guia não muda o ND por condições; elas pesam pelo custo em PP da Técnica.</div></div>`:''}</details>`:''}
     ${t.cat==='combate'&&t.form!=='aux'?`<div class="row"><button class="small ghost" data-suggest="${i}">Sugerir dano do ${t.grau}º grau</button><span class="note">padrão das fichas: ${t.form==='area'?`${[2,4,6,8,10,12,14][t.grau-1]}d6 em área`:`${[2,4,6,8,10,12,15][t.grau-1]}d10 em alvo único`}</span></div>`:''}
   </div>`}).join('');
   e.push(mod$('tech','Passos 11–13 · 16','Técnicas e Ações Poderosas','dano nas 3 primeiras rodadas',`
@@ -859,6 +897,11 @@ function renderEditor(){
       ${fld('ND final ±',inp('adj.nd',S.adj.nd,'number'))}
     </div>
     ${fld('Notas do narrador',`<textarea data-k="notes" id="i_notes">${esc(S.notes)}</textarea>`)}`,false));
+  const tab=openState.edTab||'ficha';
+  const tabBar=`<nav class="tabs" role="tablist">${[['ficha','Construção'],['prof','Profissão'],['fruta','Akuma no Mi']].map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-tab="${k}" class="${tab===k?'on':''}">${l}${k==='prof'&&S.prof.id?` · ${esc((PROFS.find(p=>p.id===S.prof.id)||{}).n)}`:''}${k==='fruta'&&S.fruit.type?` · ${esc(S.fruit.name||FRUIT_TYPES.find(x=>x[0]===S.fruit.type)[1])}`:''}</button>`).join('')}</nav>`;
+  if(tab==='prof'){e.length=0;e.push(`<div class="mod tabbody"><div class="body">${profTab()}</div></div>`)}
+  else if(tab==='fruta'){e.length=0;e.push(`<div class="mod tabbody"><div class="body">${fruitTab()}</div></div>`)}
+  e.unshift(tabBar);
   e.push(`<datalist id="dmgList">${DMG_TYPES.map(d=>`<option value="${d}">`).join('')}<option value="Contundente, Cortante ou Perfurante"></datalist>`);
   $('#editor').innerHTML=e.join('');
   refresh(R);
@@ -916,7 +959,9 @@ function buildBlock(R){
   if(S.vul.length)car.push(`<em>Vulnerabilidade a Dano:</em> ${lst(S.vul)}.`);
   if(S.res.length)car.push(`<em>Resistência a Dano:</em> ${lst(S.res)}.`);
   if(S.inv.length)car.push(`<em>Invulnerabilidade a Dano:</em> ${lst(S.inv)}.`);
-  if(S.logia)car.push(`<em>Intangibilidade:</em> Logia.`);
+  if(logiaActive())car.push(`<em>Intangibilidade:</em> Logia.`);
+  const pf=PROFS.find(p=>p.id===S.prof.id);if(pf)car.push(`<em>Profissão:</em> ${esc(pf.n)}${pf.id!=='nenhuma'?` (${GRADS[S.prof.grad][0]})`:''}.`);
+  if(S.fruit.type){const u=(FRUIT_USERS[S.fruit.type]||[]).find(x=>x[0]===S.fruit.user)||(FRUIT_USERS[S.fruit.type]||[])[0];car.push(`<em>Akuma no Mi:</em> ${esc(S.fruit.name||'sem nome')} (${FRUIT_TYPES.find(x=>x[0]===S.fruit.type)[1]}${S.fruit.cat?`, categoria ${S.fruit.cat}`:''}${u?`, ${u[1]}`:''}).`)}
   if(S.condImm.length)car.push(`<em>Invulnerabilidade à Condição:</em> ${lst(S.condImm)}.`);
   const perc=S.skills['Percepção']?10+mod(S.attrs.VON)+prof*S.skills['Percepção']:10+mod(S.attrs.VON);
   car.push(`<em>Sentidos:</em> ${S.senses?esc(S.senses)+', ':''}Percepção Passiva ${perc}.`);
@@ -927,6 +972,8 @@ function buildBlock(R){
   if(S.haki.arm)bySlot.asp.push(`<em>Haki do Armamento (${['','Inexperiente','Treinado','Perito'][S.haki.arm]}):</em> Jogadas de ataque (comuns ou Técnicas) recebem ${[0,2,3,4][S.haki.arm]} dados de dano adicionais (incluso).`);
   if(S.haki.obs)bySlot.asp.push(`<em>Haki da Observação (${['','Inexperiente','Treinado','Perito'][S.haki.obs]}):</em> ${['','Jogadas de ataque (comum) recebem vantagem.','Jogadas de ataque (comum) recebem vantagem e ataques (comum) contra a criatura sofrem desvantagem.','Jogadas de ataque (comum ou Técnicas) recebem vantagem e ataques (comum ou Técnicas) contra a criatura sofrem desvantagem.'][S.haki.obs]}`);
   if(S.haki.rei)bySlot.asp.push(`<em>Haki do Rei (${['','Inexperiente','Treinado','Perito'][S.haki.rei]}):</em> Personagens de jogadores com nível ${[0,6,8,10][S.haki.rei]} ou menor têm os PV reduzidos a 0 ao sofrer qualquer dano da criatura.`);
+  if(S.fruit.type&&!S.fruit.swap){const inn=INNATE[S.fruit.type];bySlot.asp.unshift(`<em>${esc(inn[0])} (Aspecto Inato):</em> ${esc(inn[1])}`)}
+  if(S.fruit.traits)bySlot.asp.push(`<em>Traços de Zoan:</em> ${esc(S.fruit.traits)}`);
   if(bySlot.asp.length)P.push(['Aspectos',bySlot.asp]);
   const acts=[];
   if(S.multi.length){const parts=S.multi.map(m=>{const a=S.attacks.find(x=>x.id===m.atk);return a?`${m.times}× ${a.name.toLowerCase()}`:''}).filter(Boolean);
@@ -941,10 +988,13 @@ function buildBlock(R){
     if(t.form==='ataque')body=`Ataque ${/dist/i.test(t.range)?'à Distância':'Corpo a Corpo'}: ${sg(c.bonus)} para atingir, ${esc(t.range)}.<br>Acerto: ${c.one} (${c.dn}d${c.die}${c.fl?sg(c.fl):''}) de dano ${esc(t.type)}.${t.effect?`<br>Efeito: ${esc(t.effect)}`:''}`;
     else if(t.form==='area')body=`Efeito em área, alcance de ${esc(t.range)}. Dano: ${c.one} (${c.dn}d${c.die}${c.fl?sg(c.fl):''}) ${esc(t.type)}. Toda criatura dentro da área da técnica deve fazer uma Salvaguarda de ${ATTR_NAME[t.saveAttr]} CD ${cd}. Sofrendo todo o dano se falhar ou metade desse dano se obtiver sucesso.${t.effect?` ${esc(t.effect)}`:''}`;
     else body=esc(t.effect||'');
+    if((t.conds||[]).length){const cs=` A criatura atingida deve ser bem-sucedida em uma Salvaguarda de ${ATTR_NAME[t.condSave||'CON']} CD ${cd} ou receberá a${t.conds.length>1?'s condições':' condição'} ${t.conds.map(c=>`"${esc(c)}"`).join(t.conds.length>2?', ':' e ').replace(/, ([^,]*)$/,' e $1')}${t.condDur?`, ${esc(t.condDur)}`:''}.`;body+=t.form==='ataque'?`<br>Condição:${cs}`:cs}
     return`<em>${esc(t.name)}${head?` (${head})`:''}:</em> ${body}`};
   const bon=[...bySlot.bon,...S.techs.filter(t=>t.act==='bonus').map(techLine)];if(bon.length)P.push(['Ações Bônus',bon]);
   const rea=[...bySlot.rea,...S.techs.filter(t=>t.act==='reacao').map(techLine)];if(rea.length)P.push(['Reações',rea]);
   const pod=[...bySlot.pod,...S.techs.filter(t=>t.act==='poderosa').map(techLine)];if(pod.length)P.push(['Ações Poderosas',pod]);
+  if(pf){const pfs=pf.f.filter(([n])=>!S.prof.hide.includes(n)).map(([n,t])=>`<em>${esc(n)}:</em> ${esc(t)}`);if(pf.id!=='nenhuma'&&+S.prof.grad)pfs.push(`<em>${GRADS[S.prof.grad][0]}:</em> ${esc(GRADS[S.prof.grad][1])}`);if(pfs.length)P.push(['Profissão',pfs])}
+  if(S.fruit.notes)P.push(['Fraquezas',[esc(S.fruit.notes)]]);
   if(+S.leg.count>0){const L=[`<em>Figura Lendária:</em> Pode realizar ${S.leg.count} ações lendárias, escolhidas dentre as opções abaixo. Apenas uma ação lendária pode ser usada por vez e apenas no final do turno de outra criatura. Recupera as ações lendárias gastas no começo do turno dela.`];
     const la=S.attacks.find(a=>a.id===S.leg.atk);if(la)L.push(`<em>Ataque${+S.leg.cost>1?` (Custa ${S.leg.cost} Ações Lendárias)`:''}:</em> Realiza um ataque de ${esc(la.name)}.`);
     String(S.leg.extra||'').split('\n').filter(x=>x.trim()).forEach(x=>{const i=x.indexOf(':');L.push(i>0?`<em>${esc(x.slice(0,i))}:</em>${esc(x.slice(i+1))}`:esc(x))});
@@ -953,7 +1003,7 @@ function buildBlock(R){
 function renderBlock(R){
   const {hdr,P}=buildBlock(R);
   $('#statblock').innerHTML=`<div class="row" style="justify-content:space-between;margin-bottom:8px"><span class="step">Ficha no formato do Manual</span><span class="row"><button class="small" id="btnCopy">Copiar texto</button><button class="small" id="btnSave">Salvar na biblioteca</button></span></div>
-  <h3 class="sb-name">${esc(S.name)}</h3>
+  ${S.portrait?`<img class="sb-portrait" src="${S.portrait}" alt="Retrato de ${esc(S.name)}">`:''}<h3 class="sb-name">${esc(S.name)}</h3><div class="sb-role">${esc(ROLES[S.role]||'')}</div>
   <div class="sb-hdr"><div><b>Nível de Desafio:</b> ${hdr.nd}</div><div><b>Experiência:</b> ${hdr.xp}</div><div><b>Pontos de Poder:</b> ${hdr.pp}</div>
     <div><b>Classe de Resistência:</b> ${hdr.ca}</div><div><b>Bônus de Proficiência:</b> ${hdr.prof}</div><div><b>Deslocamento:</b> ${hdr.walk}</div>
     <div><b>Pontos de Vida:</b> ${hdr.hp}</div><div><b>Classe de Dificuldade:</b> ${hdr.cd}</div><div>${hdr.extra.join('<br>')||''}</div></div>
@@ -986,7 +1036,14 @@ function coerce(el){if(el.type==='checkbox')return el.checked;if(el.type==='numb
 document.addEventListener('input',ev=>{const el=ev.target;
   if(el.id==='featSearch'){featFilter=el.value;const pos=el.selectionStart;renderEditor();const s=$('#featSearch');s.focus();s.setSelectionRange(pos,pos);return}
   if(el.dataset.k==='species'){S.species=el.value;const sp=SPECIES[el.value];if(sp&&sp.size){S.size=sp.size;S.speed.walk=sp.walk;S.speed.swim=sp.swim}if(el.value&&el.value!=='outro'&&S.type!=='Humanoide')S.type='Humanoide';renderEditor();if(sp&&sp.size)toast(`Tamanho ${sp.size}, deslocamento ${String(sp.walk).replace('.',',')} m e nado ${String(sp.swim).replace('.',',')} m aplicados`);return}
-  if(el.dataset.k){setPath(el.dataset.k,coerce(el));if(el.dataset.re||el.tagName==='SELECT'&&/ndTarget|size|caMode|hpMode|\.kind|\.cat|\.use|\.form|haki/.test(el.dataset.k))renderEditor();else softUpdate();return}
+  if(el.dataset.k){setPath(el.dataset.k,coerce(el));if(el.dataset.re||el.tagName==='SELECT'&&/ndTarget|size|caMode|hpMode|\.kind|\.cat|\.use|\.form|haki|prof\.|fruit\.(type|user)|\.act$/.test(el.dataset.k))renderEditor();else softUpdate();return}
+  if(el.dataset.tcond!==undefined){const t=S.techs[+el.dataset.tcond];t.conds=t.conds||[];const v=el.dataset.val;const i=t.conds.indexOf(v);if(el.checked&&i<0)t.conds.push(v);if(!el.checked&&i>=0)t.conds.splice(i,1);renderEditor();return}
+  if(el.dataset.profsk){const v=el.dataset.profsk;const i=S.prof.sk.indexOf(v);if(el.checked&&i<0){S.prof.sk.push(v);if(!S.skills[v])S.skills[v]=1}if(!el.checked&&i>=0){S.prof.sk.splice(i,1);if(S.skills[v]===1)delete S.skills[v]}renderEditor();return}
+  if(el.dataset.proff){const v=el.dataset.proff;const i=S.prof.hide.indexOf(v);if(el.checked&&i>=0)S.prof.hide.splice(i,1);if(!el.checked&&i<0)S.prof.hide.push(v);renderEditor();return}
+  if(el.dataset.rollmode){S.play.rollMode=el.dataset.rollmode;store.set('opEnemyDraft',S);renderPlay();return}
+  if(el.dataset.playexh){S.play.exh=+el.value;store.set('opEnemyDraft',S);renderPlay();return}
+  if(el.dataset.pcond){const v=el.dataset.pcond;const i=S.play.conds.indexOf(v);if(el.checked&&i<0)S.play.conds.push(v);if(!el.checked&&i>=0)S.play.conds.splice(i,1);plog(el.checked?'Condição aplicada':'Condição removida',v);store.set('opEnemyDraft',S);renderPlay();return}
+  if(el.id==='ptFile'){loadPortrait(el.files[0]);return}
   if(el.dataset.arr){const arr=S[el.dataset.arr];const v=el.dataset.val;const i=arr.indexOf(v);if(el.checked&&i<0)arr.push(v);if(!el.checked&&i>=0)arr.splice(i,1);softUpdate();return}
   if(el.dataset.skill){const v=+el.value;if(v)S.skills[el.dataset.skill]=v;else delete S.skills[el.dataset.skill];softUpdate();return}
   if(el.dataset.feat){const id=el.dataset.feat;if(el.checked){const ft=FEAT_BY_ID[id];S.feats[id]={val:ft&&ft.def?ft.def:''}}else delete S.feats[id];renderEditor();return}
@@ -1000,7 +1057,9 @@ document.addEventListener('toggle',ev=>{const d=ev.target;if(d.dataset&&d.datase
   if(d.dataset&&d.dataset.log){openState.log=d.open;store.set('opEnemyOpen',openState)}
   if(d.dataset&&d.dataset.tab){openState.tab=d.open;store.set('opEnemyOpen',openState)}},true);
 document.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;
-  if(b.dataset.del){const arr=S[b.dataset.del];const [rm]=arr.splice(+b.dataset.i,1);if(b.dataset.del==='attacks'){S.multi=S.multi.filter(m=>m.atk!==rm.id);if(S.leg.atk===rm.id)S.leg.atk=''}renderEditor();return}
+  if(playMode&&S.play&&playClick(b))return;
+  if(b.dataset.tab){openState.edTab=b.dataset.tab;store.set('opEnemyOpen',openState);renderEditor();return}
+  if(b.dataset.del){const arr=b.dataset.del.split('.').reduce((o,k)=>o[k],S);const [rm]=arr.splice(+b.dataset.i,1);if(b.dataset.del==='attacks'){S.multi=S.multi.filter(m=>m.atk!==rm.id);if(S.leg.atk===rm.id)S.leg.atk=''}renderEditor();return}
   if(b.dataset.suggest!==undefined){const t=S.techs[+b.dataset.suggest];if(t.form==='area'){t.dn=[2,4,6,8,10,12,14][t.grau-1];t.die=6}else{t.dn=[2,4,6,8,10,12,15][t.grau-1];t.die=10}renderEditor();return}
   if(b.dataset.copyattrs){const v=b.dataset.copyattrs.split(',').map(Number);ATTRS.forEach((a,i)=>S.attrs[a]=v[i]);renderEditor();toast('Atributos aplicados');return}
   if(b.dataset.adopt){S.ndTarget=lastR.finalIdx;renderEditor();toast(`ND pretendido agora é ${ND_LABELS[S.ndTarget]}`);return}
@@ -1008,6 +1067,9 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b
     case'addMulti':S.multi.push({atk:S.attacks[0].id,times:1});renderEditor();break;
     case'addTech':S.techs.push(tech({name:'Nova Técnica',grau:1,pp:2}));renderEditor();break;
     case'addAux':S.techs.push(tech({name:'Nova Técnica Auxiliar',cat:'auxiliar',pp:2,act:'bonus',form:'aux',dn:0}));renderEditor();break;
+    case'btnPlay':playMode=!playMode;openState.play=playMode;store.set('opEnemyOpen',openState);if(playMode&&(!S.play||S.play.hp===undefined))resetPlay();renderEditor();window.scrollTo(0,0);break;
+    case'addMP':S.fruit.mps.push({id:uid(),name:'Nova Manifestação',act:'passiva',pts:0,red:0,eff:'none',v:'',text:''});renderEditor();break;
+    case'ptDel':S.portrait='';renderEditor();toast('Retrato removido');break;
     case'addCustom':S.custom.push({id:uid(),name:'Nova característica',slot:'asp',eff:'none',v:0,val:'',text:''});renderEditor();break;
     case'btnNew':openConfirm('Começar uma ficha em branco? A ficha atual continua na biblioteca só se você a tiver salvado.','Nova ficha',()=>{S=blank();renderEditor()});break;
     case'btnCopy':{const t=blockText(lastR);(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Ficha copiada')).catch(()=>openText('Copiar ficha',t));break}
@@ -1031,6 +1093,226 @@ function openIO(){modal(`<h3>Importar / exportar</h3><p class="note">Copie o JSO
   const load=txt=>{try{const d=JSON.parse(txt);if(!d||typeof d!=='object'||!d.attrs)throw 0;S=Object.assign(blank(),d);closeModal();renderEditor();toast('Ficha importada')}catch(e){$('#ioMsg').textContent='Esse texto não é uma ficha válida do Estaleiro. Confira se copiou o JSON inteiro.'}};
   $('#ioLoad').onclick=()=>load($('#ioTxt').value);
   $('#ioFile').onchange=e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>load(r.result);r.readAsText(file)}}
+
+/* ============ PROFISSÕES (Livro do Jogador, cap. 4) ============ */
+const PROFS=[
+ {id:'adestrador',n:'Adestrador',sk:['Acrobacia','Atuação','Intuição','Percepção','Persuasão','Sobrevivência'],tests:'Intimidar uma fera; prestar primeiros socorros em um animal; identificar a causa de um comportamento estranho em criaturas.',tools:'Mochila pequena, 30 rações para animais, livros de veterinária e treinamento animal, chicote, apito, kit médico e 3 kits de primeiros socorros.',f:[['Vínculo Animal','Tem um Animal Vinculado com a mesma CR do adestrador e metade dos PV máximos. Ataca com prof. + mod. do adestrador, dano 1d4 + mod., duas jogadas por ação Atacar.'],['Treinamento Animal','A cada nível par, 2 melhorias para o animal (até 6): Poder Bruto, Super Nutrição, Treino de Velocidade ou Melhorar Potencial.'],['Adestrar Animais','Teste de Sabedoria contra CD 10 + ND do animal para adestrá-lo por 24 h, comunicar-se, acalmá-lo ou afugentá-lo.']]},
+ {id:'arqueologo',n:'Arqueólogo',sk:['História','Intuição','Investigação','Percepção','Persuasão','Sobrevivência'],tests:'Decifrar uma língua antiga; lembrar a cultura de uma civilização; identificar ou restaurar artefatos.',tools:'Mochila pequena, lanterna, corda, tenda, livros de história e culturas antigas, chicote, porta-mapas, caderno e kit de escalada.',f:[['Explorador Atento','Guia (vantagem em testes de exploração de ruínas, e quem o segue passa automaticamente); Salvador (reação para reduzir à metade ou anular o perigo de uma armadilha); Solucionador (resolve um enigma ou fechadura de forma infalível).'],['Encontrar Tesouro','No início de uma exploração, Teste de Sabedoria para achar pistas de um tesouro escondido (tabela Tesouros Perdidos).'],['Conhecimento Proibido','Interpreta Poneglyphs parcialmente, a critério do Narrador.']]},
+ {id:'botanico',n:'Botânico',sk:['História','Intuição','Investigação','Natureza','Percepção','Sobrevivência'],tests:'Identificar plantas raras ou tóxicas; descobrir propriedades medicinais; avaliar se um ambiente é seguro.',tools:'Mochila pequena, lupa de análise, ferramentas de coleta, livros de botânica, 5 frascos e estilete de poda.',f:[['Manipulação de Plantas','Cultiva e usa Pop Greens e outras plantas especiais em prol dos seus objetivos.'],['Geomante','Com 3 h coletando materiais e Sabedoria CD 17, cria compostos de uso único conforme o terreno; usá-los exige uma ação bônus.']]},
+ {id:'cacador',n:'Caçador de Recompensas',sk:['Furtividade','Intimidação','Investigação','Percepção','Persuasão','Sobrevivência'],tests:'Encontrar pistas ou pegadas; negociar com o governo ou a Marinha; lembrar informações sobre crimes.',tools:'Mochila pequena, livros diversos, 3 kits de primeiros socorros, 2 cordas, 2 pares de algemas e bússola ou log pose.',f:[['Encontrar um Alvo','Teste de Sabedoria para localizar um alvo, com CD conforme a informação disponível sobre ele.'],['Alvo Marcado','Marca até 3 alvos encontrados e recebe bônus durante a caçada.']]},
+ {id:'carpinteiro',n:'Carpinteiro',sk:['Acrobacia','Atletismo','História','Investigação','Persuasão','Prestidigitação'],tests:'Criar ou reforçar objetos de madeira; replicar uma peça; compreender mecanismos de engenharia.',tools:'Mochila pequena, livros de marcenaria, 10 plantas de construção, serrote, martelo e kit de construção.',f:[['Trabalho em Madeira','Constrói embarcações de qualquer porte, cômodos e componentes (cap. 14).'],['Navio Danificado','Repara embarcações danificadas.']]},
+ {id:'cientista',n:'Cientista',sk:['Investigação','Intuição','Medicina','Percepção','Prestidigitação','Natureza'],tests:'Compreender fenômenos naturais; analisar substâncias; deduzir o funcionamento de tecnologias avançadas.',tools:'Mochila pequena, kit médico, kit de pesquisa, kit de primeiros socorros, kit de chaves, kit de construção, livros científicos e mini computador.',f:[['Fator Linhagem','Manipula o Fator Linhagem: pesquisas com Akuma no Mi e modificações profundas em formas de vida.'],['Laser','Desenvolve armamento laser.']]},
+ {id:'contrabandista',n:'Contrabandista',sk:['Enganação','Furtividade','Intimidação','Intuição','Persuasão','Provocação'],tests:'Encontrar rotas ou passagens secretas; ocultar contrabando; avaliar o risco de uma negociação ilegal.',tools:'Mochila pequena, casaco com bolsos falsos, kit de falsificação, registro codificado de contatos e mapa de rotas clandestinas.',f:[['Aquisição Sombria','Contatos no mercado negro conseguem quase qualquer item, a critério do Narrador.'],['Membro do Submundo','Ao chegar numa ilha, Sabedoria CD 16 para identificar atividades ilegais, rotas, contrabandistas e autoridades disfarçadas.']]},
+ {id:'cozinheiro',n:'Cozinheiro',sk:['Atuação','Intuição','Persuasão','Prestidigitação','Provocação','Sobrevivência'],tests:'Achar alimentos em locais escassos; verificar se a comida está estragada ou envenenada; identificar ingredientes pelo aroma.',tools:'Mochila pequena, livros gastronômicos, kit de cozinha, 3 kits de temperos e roupa de gala.',f:[['Refeição do Chef','Pratos especiais com benefícios que duram até o próximo descanso longo.'],['Preparo Perfeito','Potencializa as propriedades dos alimentos com o preparo correto.']]},
+ {id:'engenheiro',n:'Engenheiro',sk:['História','Intuição','Investigação','Percepção','Prestidigitação','Sobrevivência'],tests:'Melhorias mecânicas em navios; sistemas de segurança e computadores; estruturas complexas.',tools:'Mochila pequena, livros de engenharia, física e computação, martelo, kit de chaves, kit de construção e mini computador.',f:[['Engenharia Naval','Construções avançadas para embarcações.'],['Construção Robótica','Constrói robôs (40 dias, 500.000.000 de custo, manutenção mensal).']]},
+ {id:'espiao',n:'Espião',sk:['Enganação','Furtividade','Intuição','Investigação','Percepção','Prestidigitação'],tests:'Perceber comportamentos suspeitos; vigiar alvos sem ser notado; infiltrar-se em ambientes restritos.',tools:'Mochila pequena, óculos com lente ampliadora, aparelho de escuta, caderno criptografado, kit de disfarce, kit de cadeados, kit de falsificação e mini câmera.',f:[['Táticas de Espionagem','Infiltração, disfarces, identidades falsas e mensagens secretas.'],['Dispositivo de Espião','Engenhoca especial cujas funções ele ativa com ação bônus.']]},
+ {id:'farmaceutico',n:'Farmacêutico',sk:['História','Intuição','Investigação','Medicina','Natureza','Percepção'],tests:'Identificar substâncias; criar analgésicos ou estimulantes; diferenciar toxinas naturais de artificiais.',tools:'Mochila pequena, kit médico, kit de pesquisa, kit de primeiros socorros, kit de herbalismo, kit de venenos, livros e reagentes.',f:[['Drogas Especiais','Fabrica drogas que levam o corpo ao limite (exige laboratório).'],['Controle de Doenças','Teste para ajudar criaturas afetadas por doenças ou venenos.']]},
+ {id:'ferreiro',n:'Ferreiro',sk:['Atletismo','História','Intuição','Investigação','Percepção','Prestidigitação'],tests:'Avaliar a integridade de uma arma; detectar defeitos em metais; reforçar equipamentos improvisados.',tools:'Mochila pequena, livros de metalurgia, martelo de forja, ferramentas de metal, pedra de amolar, bigorna pequena e molde.',f:[['Forjar Equipamentos','Cria armas e equipamentos do cap. 8 com um Teste de Atributo.']]},
+ {id:'informante',n:'Informante',sk:['Enganação','Furtividade','Investigação','Intuição','Percepção','Persuasão'],tests:'Recordar informações públicas e acontecimentos recentes; avaliar mercadorias; localizar itens ou pessoas.',tools:'Mochila pequena, caderno codificado, mapa da região e ferramentas de comunicação discreta.',f:[['Chantagem','Sabedoria CD 17 para descobrir informações comprometedoras sobre alguém.'],['Buscar Tripulante','Encontra numa ilha voluntários com a profissão desejada.']]},
+ {id:'inventor',n:'Inventor',sk:['História','Investigação','Intuição','Natureza','Prestidigitação','Percepção'],tests:'Improvisar dispositivos; entender máquinas desconhecidas; engenharia reversa.',tools:'Mochila pequena, kit de chaves, kit de construção, livros de engenharia criativa e caixa de peças.',f:[['Criar Engenhoca','Teste de Sabedoria para criar engenhocas com dials e engenhocas avançadas.']]},
+ {id:'jornalista',n:'Jornalista',sk:['Enganação','História','Investigação','Intuição','Percepção','Persuasão'],tests:'Investigar eventos recentes; extrair informações de testemunhas; checar a credibilidade de fontes.',tools:'Mochila pequena, caderno, máquina fotográfica, gravador de voz e livro de técnicas de entrevista.',f:[['Pesquisa Jornalística','Interpreta fatos e coleta informações.'],['Poder da Imprensa','Molda a opinião pública (fake news e outras ações).']]},
+ {id:'medico',n:'Médico',sk:['Intuição','Investigação','Medicina','Percepção','Prestidigitação','Sobrevivência'],tests:'Cirurgias, ferimentos graves e próteses; diagnosticar doenças; criar antídotos.',tools:'Mochila pequena, livros de anatomia e medicina, kit médico e 3 kits de primeiros socorros.',f:[['Tratar Ferimentos','Dados Curativos (d6), 2 por nível de personagem.'],['Paramedicina','Ação bônus: Teste para estabilizar vítimas em estado crítico.'],['Tratar Doenças','Após 1 minuto analisando, medica com uma ação; sintomas somem por 24 h.'],['Cirurgia','Restaura a saúde em local apropriado, incluindo Danos Brutais.']]},
+ {id:'musico',n:'Músico',sk:['Atuação','Enganação','Furtividade','Intimidação','Persuasão','Prestidigitação','Provocação'],tests:'Impressionar multidões; conquistar interesses românticos; inspirar os companheiros.',tools:'Mochila pequena, livros de canto e partituras e um instrumento musical.',f:[['Alma de Artista','Proficiente com qualquer instrumento musical e possui uma bela voz.'],['Repertório Encantador','Músicas especiais iniciadas com ação e ação bônus que influenciam as emoções.']]},
+ {id:'navegador',n:'Navegador',sk:['Enganação','Intuição','Investigação','Percepção','Persuasão','Sobrevivência'],tests:'Calcular rotas; prever tempestades; criar mapas; orientar-se sem instrumentos.',tools:'Mochila pequena, livros de astronomia e navegação, bússola ou log pose, compasso, balestilha e astrolábio.',f:[['Navegação','Testes de Sabedoria para evitar perigos climáticos e encontros hostis em alto-mar.'],['Mente Afiada','Sempre sabe onde fica o Norte, entre outros benefícios permanentes.']]},
+ {id:'psiquiatra',n:'Psiquiatra',sk:['Intuição','Investigação','Medicina','Percepção','Persuasão','Provocação'],tests:'Interpretar comportamentos; diagnosticar transtornos; estabilizar indivíduos em crise.',tools:'Mochila pequena, livros de psicologia, caderno de anotações clínicas e kit médico.',f:[['Perspicácia Psicológica','Com 5 min de conversa e Intuição CD 16, descobre o estado emocional e outras informações da criatura.'],['Táticas Mentais','Diagnóstico e técnicas de influência emocional e manipulação verbal.']]},
+ {id:'timoneiro',n:'Timoneiro',sk:['Atletismo','Atuação','Intuição','Percepção','Persuasão','Prestidigitação'],tests:'Conduzir veículos; manobras de combate em alto-mar; estabilizar a embarcação.',tools:'Mochila pequena, livros de navegação, bússola ou log pose, 10 cordas e tambor.',f:[['Condutor dos Mares','Manobras complexas e ataques coordenados do navio em batalha.'],['Manobrar Desastres Naturais','Resiliência Náutica: metade do dano ao falhar em Testes de Desastre Natural, e nenhum no sucesso.']]},
+ {id:'nenhuma',n:'Sem Profissão',sk:[],tests:'Não aplica proficiência em testes de profissão.',tools:'—',f:[['Ajudante Perfeito','3/descanso longo: +5 no teste de profissão de outra criatura (ação Ajudar em combate).'],['Foco','Proficiência em 2 perícias à escolha (exceto Haki, Sobrenatural e Sorte).'],['Parceiro de Treino','Reduz à metade o tempo de treinamento de uma criatura.'],['Tempo Livre','Assume até 5 funções do navio sem prejuízo.']]}
+];
+const GRADS=[['Profissional','Graduação inicial.'],['Especialista','Vantagem em testes da profissão 3×/descanso longo. Desconto de 10%, CD −1, dados de cura/PP d6→d8.'],['Mestre','Também: resultados de 9 ou menos no d20 em testes da profissão contam como 10. Desconto de 20%, CD −2, d8→d10.'],['Grão-Mestre','Também: 3 usos para transformar uma falha em sucesso (recupera 1 por descanso longo). Desconto de 50%, CD −3, d10→d12.']];
+
+/* ============ AKUMA NO MI (Livro do Jogador, cap. 6) ============ */
+const FRUIT_TYPES=[['','—'],['logia','Logia'],['paramecia','Paramecia'],['zoanC','Zoan Comum'],['zoanA','Zoan Ancestral'],['zoanM','Zoan Mítica']];
+const FRUIT_USERS={logia:[['simples','Usuário Simples',1],['avancado','Usuário Avançado',2],['simplesD','Usuário Simples Desperto',1],['avancadoD','Usuário Avançado Desperto',3]],
+  paramecia:[['simples','Usuário Simples',1],['avancado','Usuário Avançado',2],['simplesD','Usuário Simples Desperto',1],['avancadoD','Usuário Avançado Desperto',3]],
+  zoanM:[['mitica','Zoan Mítica',1],['miticaD','Zoan Mítica Desperto',2]],zoanC:[['comum','Zoan Comum',0]],zoanA:[['ancestral','Zoan Ancestral',0]]};
+const INNATE={logia:['Corpo Elemental','Técnica Auxiliar extra de "Power Up". O corpo vira o elemento do fruto e ganha Intangibilidade: ataques normais não o tocam, exceto com Haki do Armamento, Kairoseki ou o inimigo natural do elemento.'],
+  paramecia:['Uso Alternativo','1×/descanso longo: usa uma Técnica de Combate ou Auxiliar de duração Instantânea sem gastar PP.'],
+  zoanC:['Vigor Animalesco','1×/descanso longo, sem ação: recupera 20 + nível em PV ou remove 1 nível de Exaustão.'],zoanA:['Vigor Animalesco','1×/descanso longo, sem ação: recupera 20 + nível em PV ou remove 1 nível de Exaustão.'],
+  zoanM:['Vigor Animalesco (ou Uso Alternativo)','1×/descanso longo, sem ação: recupera 20 + nível em PV ou remove 1 nível de Exaustão. Zoan Mítica pode trocar por Uso Alternativo.']};
+const MP_ACT=[['passiva','Passiva',3],['inacao','Inação',5],['bonus','Ação Bônus',8],['reacao','Reação',8],['poderosa','Ação Poderosa',9]];
+const MP_SLOT={passiva:'asp',inacao:'asp',bonus:'bon',reacao:'rea',poderosa:'pod'};
+const GA='Akuma no Mi · MP Especiais';
+f(GA,'mpArauto','Arauto do Desastre (só Logia)','asp',0,'Técnicas que causam dano em área recebem redução de PP igual ao grau (mínimo 1 PP), fora do limite de redução.',undefined,{src:LJ});
+f(GA,'mpDanoExtremo','Dano Extremo (só Logia)','asp',0,'Nas Técnicas da fruta, um tipo de dano ignora resistências e invulnerabilidades, não é reduzido por Contenção de Dano pessoal nem vai para PV temporários, e os dados causam no mínimo metade do total.',undefined,{src:LJ});
+f(GA,'mpImplacavel','Dano Implacável (categoria A ou S)','asp',0,'Técnicas da fruta causam o dobro em estruturas, ignoram resistências e causam metade em invulnerabilidades.',undefined,{src:LJ});
+f(GA,'mpDestruidor','Destruidor (categoria A ou S)','asp',0,'Técnicas da fruta causam 4× dano em estruturas e dobram o alcance (exceto toque ou pessoal).',undefined,{src:LJ});
+f(GA,'mpInvParcial','Invulnerabilidade Parcial','asp',0,'Invulnerável a 1 tipo de dano ou resistente a até 3 tipos, exceto Haki do Armamento, Kairoseki ou o inimigo natural. Marque os tipos em Defesa para contar no ND.',undefined,{src:LJ});
+f(GA,'mpPotencializador','Potencializador Ofensivo','bon',[['dmg']],'1×/rodada, com ação bônus (ou junto do ataque, 5/descanso longo), soma 1d10 de dano do tipo da fruta a uma jogada de ataque.','dano extra (padrão 1d10)',{def:'1d10',src:LJ});
+f(GA,'mpRefinada','Habilidade Refinada','asp',0,'Ao usar uma Técnica da fruta: vantagem na jogada de ataque, desvantagem numa Salvaguarda ou escolher quem é afetado na área.',undefined,{src:LJ});
+f(GA,'mpElemental','Potencialização Elemental (Logia ou MP Desperta)','bon',0,'Com ação bônus ao usar Técnica da fruta: impõe condição (até 2 PP) em até 3 criaturas, aumenta a área ou soma um dado de dano.',undefined,{src:LJ});
+f(GA,'mpOrbes','Orbes','asp',0,'Objetos condizentes orbitam o usuário (até mod. de DES): reduzir dano em 2d8 (reação), +1 dado numa Técnica, mover objetos ou dar vantagem no próximo ataque.',undefined,{src:LJ});
+
+/* ============ CONDIÇÕES (Livro do Jogador, cap. 10.3) ============ */
+const COND_INFO={
+ 'Agarrado':[1,'Deslocamento 0 e sem bônus de deslocamento. Termina se quem agarrou ficar Incapacitado ou soltar.'],
+ 'Amedrontado':[1,'Desvantagem em Testes e ataques (comum) com a fonte do medo à vista; não pode se aproximar dela.'],
+ 'Atordoado':[6,'Incapacitado, não se move, fala hesitante; falha automática em Salvaguardas de FOR e DES; ataques contra ele têm vantagem; crítico nele soma 2 dados.'],
+ 'Bêbado':[1,'Desvantagem em Salvaguardas e Testes de Destreza. Termina com descanso curto ou longo.'],
+ 'Caído':[1,'Só rasteja; desvantagem nos ataques; ataques a 1,5 m contra ele têm vantagem, e de mais longe, desvantagem.'],
+ 'Cego':[1,'Falha em Testes que dependam da visão; ataques contra ele têm vantagem e os dele, desvantagem.'],
+ 'Empoderado':[3,'Ataques corpo a corpo causam 1d12 + mod.; Técnicas que errem não gastam PP; terreno difícil não reduz o deslocamento.'],
+ 'Enfeitiçado':[2,'Não pode atacar quem o enfeitiçou; quem enfeitiçou tem vantagem em interações sociais com ele.'],
+ 'Enfraquecido':[0,'Deslocamento à metade, não nada, sem poderes de Akuma no Mi, desvantagem em Testes, Incapacitado, ataques contra ele com vantagem e falha em todas as Salvaguardas. (Não pode ser reproduzido.)'],
+ 'Enfurecido':[1,'Ataca a fonte da fúria a todo custo, com desvantagem; +1d4 de dano corpo a corpo; sem Concentração. Dura 1 minuto.'],
+ 'Envenenado':[1,'Desvantagem em jogadas de ataque e Testes de Atributo.'],
+ 'Estremecido':[2,'Desvantagem nos ataques; não usa Técnicas nem Concentração; cada 1,5 m de deslocamento custa 1,5 m extra.'],
+ 'Impedido':[2,'Deslocamento 0; ataques contra ele têm vantagem e os dele, desvantagem; desvantagem em Salvaguardas de DES.'],
+ 'Incapacitado':[4,'Não realiza ações, ações poderosas, ações bônus nem reações.'],
+ 'Inconsciente':[8,'Incapacitado, caído, larga o que segura; falha em Salvaguardas de FOR e DES; ataques com vantagem; acerto a 1,5 m é crítico.'],
+ 'Invisível':[5,'Não pode ser visto sem sentidos especiais; ataques contra ele têm desvantagem e os dele, vantagem.'],
+ 'Letárgico':[2,'Não usa Técnicas; só uma entre ação, ação poderosa ou ação bônus por turno; dano dos ataques à metade (exceto armas de fogo).'],
+ 'Paralisado':[8,'Incapacitado, não se move nem fala; falha em Salvaguardas de FOR e DES; ataques com vantagem; acerto a 1,5 m é crítico; crítico soma 2 dados.'],
+ 'Queimado':[1,'Sofre 1d6 de Fogo no primeiro ataque de cada turno; sem Concentração. Tratar: Medicina CD 10 ou Sobrevivência CD 16.'],
+ 'Sangramento':[1,'Sofre 1d6 Cortante ao se mover voluntariamente pela primeira vez no turno. Tratar: Medicina CD 10 ou Sobrevivência CD 16.'],
+ 'Sonolento':[1,'Sem reações; no máximo um ataque corpo a corpo por turno; desvantagem em Testes de DES e SAB.'],
+ 'Sufocado':[1,'Não fala; após 1 + mod. de CON rodadas, Salvaguarda de CON CD 10 (+2 por turno) ou fica Inconsciente.'],
+ 'Surdo':[1,'Falha em Testes que dependam da audição.'],
+ 'Exaustão':[0,'Cumulativa: −2 no d20 e −1,5 m de deslocamento por nível; no 6º nível desmaia (0 PV).']
+};
+F.filter(x=>x.g===GA).forEach(x=>FEAT_BY_ID[x.id]=x);
+const ROLES={inimigo:'Inimigo',chefe:'Chefe',aliado:'Aliado',neutro:'Neutro'};
+const TECH_CONDS=Object.keys(COND_INFO).filter(c=>c!=='Exaustão'&&c!=='Empoderado'&&c!=='Invisível');
+const DISADV_CONDS=['Amedrontado','Caído','Cego','Envenenado','Estremecido','Impedido','Enfurecido'];
+
+/* ============ ABAS: PROFISSÃO E AKUMA NO MI ============ */
+function profTab(){
+  const p=PROFS.find(x=>x.id===S.prof.id);
+  let h=`<div class="grid wide">${fld('Profissão',sel('prof.id',[['','— nenhuma escolhida'],...PROFS.map(x=>[x.id,x.n])],S.prof.id,'data-re="1"'))}
+    ${p&&p.id!=='nenhuma'?fld('Graduação',sel('prof.grad',GRADS.map((g,i)=>[i,g[0]]),S.prof.grad,'data-re="1"')):''}</div>`;
+  if(!p)return h+`<p class="note">Escolha uma profissão para ver perícias, ferramentas e características. Pelo Livro do Jogador, um PdN pode ter apenas uma profissão. Profissões não alteram o ND: são habilidades fora de combate.</p>`;
+  if(p.sk.length)h+=`<div class="sub">Perícias da profissão <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">· escolha 2 · marcadas aqui ganham proficiência</span></div>
+    <div class="chips">${p.sk.map(s=>`<label class="chip"><input type="checkbox" data-profsk="${esc(s)}"${S.prof.sk.includes(s)?' checked':''}>${esc(s)}</label>`).join('')}</div>
+    ${S.prof.sk.length>2?`<div class="w">O Livro dá 2 perícias pela profissão; você marcou ${S.prof.sk.length}.</div>`:''}`;
+  h+=`<div class="card"><div><b>Testes de profissão</b> <span class="note">· soma o bônus de proficiência (${sg(basicProf(lastR))})</span></div><div class="note">${esc(p.tests)}</div>
+    <div><b>Ferramentas</b></div><div class="note">${esc(p.tools)}</div>
+    ${p.id!=='nenhuma'?`<div><b>Graduação: ${GRADS[S.prof.grad][0]}</b></div><div class="note">${GRADS.slice(1,+S.prof.grad+1).map(g=>`<b>${g[0]}:</b> ${esc(g[1])}`).join('<br>')||'Sem benefícios extras.'}</div>`:''}</div>
+    <div class="sub">Características <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">· marque as que devem aparecer na ficha</span></div>
+    ${p.f.map(([n,t],i)=>{const on=!S.prof.hide.includes(n);return`<div class="feat${on?' on':''}"><input type="checkbox" id="pf_${i}" data-proff="${esc(n)}"${on?' checked':''}><label for="pf_${i}"><span class="fn">${esc(n)}</span><span class="fe none">(–)</span></label><div class="ft">${esc(t)}</div></div>`}).join('')}
+    <p class="note">Detalhes completos (tabelas, custos, tempos) no Livro do Jogador, cap. 4.</p>`;
+  return h}
+function fruitTab(){
+  const fr=S.fruit;const users=FRUIT_USERS[fr.type]||[];const u=users.find(x=>x[0]===fr.user)||users[0];
+  const mpMax=(u?u[2]:0)+(fr.swap&&fr.type?1:0);const inn=INNATE[fr.type];
+  let h=`<div class="grid wide">
+    ${fld('Nome da fruta',inp('fruit.name',fr.name,'text','placeholder="ex.: Mera Mera no Mi"'))}
+    ${fld('Tipo',sel('fruit.type',FRUIT_TYPES,fr.type,'data-re="1"'))}
+    ${fld('Categoria',sel('fruit.cat',[['','—'],['C','C'],['B','B'],['A','A'],['S','S']],fr.cat))}
+    ${users.length?fld('Tipo de usuário',sel('fruit.user',users.map(x=>[x[0],x[1]]),u[0],'data-re="1"')):''}
+  </div>`;
+  if(!fr.type)return h+`<p class="note">Escolha o tipo da fruta para ver o Aspecto Inato e as Manifestações de Poder. Pelo Guia (passo 16), as Técnicas e características da fruta passam pelos mesmos passos do ND: cadastre as Técnicas no módulo Técnicas da aba Construção.</p>`;
+  h+=`<div class="card"><div class="card-h"><b>Aspecto Inato: ${esc(inn[0])}</b>${fr.type!=='zoanC'&&fr.type!=='zoanA'?`<label class="chip" style="margin-left:auto"><input type="checkbox" data-k="fruit.swap" id="i_fruit_swap"${fr.swap?' checked':''} data-re="1"> Trocar por 1 MP criada</label>`:''}</div>
+    <div class="note">${fr.swap?'<s>'+esc(inn[1])+'</s> Trocado por uma Manifestação de Poder adicional (não pode ser MP Especial).':esc(inn[1])}</div>
+    ${fr.type==='logia'&&!fr.swap?`<div class="note"><b>No ND:</b> a Intangibilidade aplica o multiplicador de Logia nos PV virtuais (×3 / ×2,5 / ×2 / ×1,5 pela faixa do ND pretendido).</div>`:''}</div>`;
+  if(fr.type==='zoanC'||fr.type==='zoanA'||fr.type==='zoanM')h+=fld('Traços de Zoan (comuns, específicos e ancestrais)',`<textarea data-k="fruit.traits" id="i_fruit_traits" placeholder="ex.: Predador; Garras; Presas...">${esc(fr.traits)}</textarea>`);
+  const used=fr.mps.length+F.filter(x=>x.g===GA&&S.feats[x.id]).length;
+  h+=`<div class="sub">Manifestações de Poder <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">· ${used} de ${mpMax} pelo tipo de usuário</span></div>`;
+  if(used>mpMax)h+=`<div class="w">Este tipo de usuário recebe ${mpMax} MP; há ${used} escolhidas.</div>`;
+  if(mpMax===0&&!fr.mps.length)h+=`<p class="note">Zoan Comum e Ancestral não recebem Manifestações de Poder.</p>`;
+  h+=`<details class="feat-group"${openState.fg_mpesp?' open':''} data-fg="mpesp"><summary>MP Especiais (predefinidas, ignoram Pontos Virtuais)</summary>${F.filter(x=>x.g===GA).map(ft=>featRow(ft,'Livro do Jogador','mp_')).join('')}</details>`;
+  h+=fr.mps.map((m,i)=>{const act=MP_ACT.find(a=>a[0]===m.act)||MP_ACT[0];const avail=act[2]+(+m.red||0);const over=(+m.pts||0)>Math.min(avail,12);
+    return`<div class="card"><div class="card-h"><input class="name" data-k="fruit.mps.${i}.name" id="mpn_${m.id}" value="${esc(m.name)}"><span class="pill${over?'':' teal'}" id="mpp_${m.id}">${m.pts||0} / ${Math.min(avail,12)} PV</span><button class="small ghost danger" data-del="fruit.mps" data-i="${i}">Remover</button></div>
+    <div class="grid">${fld('Ativação',`<select data-k="fruit.mps.${i}.act" id="mpa_${m.id}" data-re="1">${opt(MP_ACT.map(a=>[a[0],`${a[1]} (${a[2]} pontos)`]),m.act)}</select>`)}
+      ${fld('Pontos Virtuais usados',`<input type="number" min="0" data-k="fruit.mps.${i}.pts" id="mpu_${m.id}" value="${esc(m.pts)}" data-re="1">`)}
+      ${fld('Pontos de redução (+PV)',`<input type="number" min="0" data-k="fruit.mps.${i}.red" id="mpr_${m.id}" value="${esc(m.red||0)}" data-re="1">`)}
+      ${fld('Efeito no ND',`<select data-k="fruit.mps.${i}.eff" id="mpe_${m.id}">${opt([['none','(–) nenhum'],['ca','CR virtual +'],['atk','Ataque virtual +'],['hpPct','PV virtual +%'],['hp3x','PV virtual +3× valor'],['dmg','Soma ao dano por rodada'],['dmgR1','Dano só na 1ª rodada']],m.eff)}</select>`)}
+      ${fld('Número / valor',`<input data-k="fruit.mps.${i}.v" id="mpv_${m.id}" value="${esc(m.v)}" placeholder="ex.: 2 ou 3d10">`)}</div>
+    ${fld('Descrição',`<textarea data-k="fruit.mps.${i}.text" id="mpt_${m.id}">${esc(m.text)}</textarea>`)}
+    ${over?`<div class="w">Os efeitos passam dos Pontos Virtuais disponíveis (máximo absoluto de 12).</div>`:''}</div>`}).join('');
+  h+=`<div class="row"><button class="small" id="addMP">Criar Manifestação de Poder</button></div>
+    <p class="note">Regras de criação (cap. 6.9): começa com 6 Pontos Virtuais, ajustados pela ativação (Passiva 3, Inação 5, Ação Bônus 8, Reação 8, Ação Poderosa 9); cada efeito custa em pontos o mesmo que custaria em PP numa Técnica de 2º grau; a soma dos efeitos nunca passa de 12. Uma MP não pode causar dano diretamente, aumentar dano de ataques, recuperar PP, recuperar PV sem limite de uso nem aumentar a CR sem ser Ação Poderosa.</p>`;
+  h+=fld('Fraquezas e observações',`<textarea data-k="fruit.notes" id="i_fruit_notes" placeholder="ex.: não nada; enfraquece com Kairoseki; inimigo natural: magma">${esc(fr.notes)}</textarea>`);
+  return h}
+function logiaActive(){return !!S.logia||(S.fruit&&S.fruit.type==='logia'&&!S.fruit.swap)}
+
+/* ============ RETRATO ============ */
+function loadPortrait(file){if(!file||!/^image\//.test(file.type)){toast('Escolha um arquivo de imagem (JPG, PNG ou WEBP).');return}
+  const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const max=480;const k=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);S.portrait=c.toDataURL('image/jpeg',.85);renderEditor();toast('Retrato adicionado')};img.onerror=()=>toast('Não consegui ler essa imagem. Tente outro arquivo.');img.src=r.result};r.readAsDataURL(file)}
+
+/* ============ MODO DE JOGO ============ */
+let playMode=!!openState.play;
+function rollD(n,d){const r=[];let s=0;for(let i=0;i<n;i++){const v=1+Math.floor(Math.random()*d);r.push(v);s+=v}return{s,r}}
+function d20(){const P=S.play;const mode=P.rollMode;const a=rollD(1,20).s,b=rollD(1,20).s;const v=mode==='vant'?Math.max(a,b):mode==='desv'?Math.min(a,b):a;return{v,txt:mode==='normal'?`${a}`:`${a}/${b}`}}
+function exhPen(){return 2*(+S.play.exh||0)}
+function ppMax(){return S.ppOverride!==''&&S.ppOverride!=null?+S.ppOverride:(lastR?lastR.finalPP:0)}
+function resetPlay(){const R=lastR||compute();S.play={hp:R.hp,tmp:0,pp:ppMax(),uses:{},spent:{},conds:[],exh:0,round:1,log:[],rollMode:'normal',init:null}}
+function plog(t,v,cls=''){S.play.log.unshift({t,v,cls,r:S.play.round});S.play.log=S.play.log.slice(0,40)}
+function rollAttack(name,bonus){const r=d20();const pen=exhPen();const tot=r.v+bonus-pen;const crit=r.v===20,fumble=r.v===1;plog(`${name}: jogada de ataque`,`${tot} (d20 ${r.txt} ${sg(bonus)}${pen?` −${pen} exaustão`:''})${crit?' · CRÍTICO':fumble?' · falha crítica':''}`,crit?'crit':fumble?'fail':'');return{tot,crit}}
+function rollDamage(name,dn,die,fl,type,crit,mult=1){const n=crit?dn*2:dn;const r=rollD(n,die);const tot=Math.max(0,r.s+fl)*mult;plog(`${name}: dano${crit?' (crítico)':''}`,`${tot} ${type||''} (${n}d${die}${fl?sg(fl):''} → ${r.r.join('+')}${fl?sg(fl):''}${mult>1?` ×${mult}`:''})`,crit?'crit':'');return tot}
+function techStatus(t){const P=S.play;const u=P.uses[t.id]||0;if(t.use==='dia')return{ok:u<(+t.perDay||0),lab:`${(+t.perDay||0)-u}/${t.perDay} por dia`};
+  if(/^rec/.test(t.use))return{ok:!P.spent[t.id],lab:P.spent[t.id]?`gasta · recarga ${t.use==='rec56'?'5–6':t.use==='rec46'?'4–6':'6'}`:'disponível'};return{ok:true,lab:'à vontade'}}
+function renderPlay(){
+  const R=lastR||compute();if(!S.play||S.play.hp===undefined)resetPlay();const P=S.play;const prof=basicProf(R);
+  const hpMax=R.hp,pm=ppMax();const pct=Math.max(0,Math.min(100,P.hp/hpMax*100));
+  const dis=P.conds.filter(c=>DISADV_CONDS.includes(c));
+  const saveB=a=>mod(S.attrs[a])+(S.saves.includes(a)?prof:0);
+  const cd=cdValue(prof);
+  let h=`<div class="play">
+  <div class="panel pl-head">${S.portrait?`<img class="pl-portrait" src="${S.portrait}" alt="Retrato de ${esc(S.name)}">`:''}
+    <div class="pl-id"><div class="step">${esc(ROLES[S.role]||'PdN')} · ND ${ND_LABELS[R.finalIdx]} · rodada ${P.round}</div><h2 class="pl-name">${esc(S.name)}</h2>
+    <div class="row"><span class="pill teal">CR ${caReal()}</span><span class="pill teal">CD ${cd}</span><span class="pill teal">Desloc. ${String(Math.max(0,S.speed.walk-1.5*(+P.exh||0))).replace('.',',')} m</span>${P.init!=null?`<span class="pill">Iniciativa ${P.init}</span>`:''}</div></div>
+    <div class="row pl-btns"><button class="primary" data-play="init">Rolar iniciativa</button><button data-play="turn">Próximo turno</button><button class="ghost" data-play="reset">Reiniciar encontro</button></div></div>
+  <div class="pl-grid">
+   <div class="panel pl-box"><h3>Pontos de Vida</h3><div class="pl-big"><span id="plHp">${fmt(P.hp)}</span><small> / ${fmt(hpMax)}${P.tmp?` · +${P.tmp} temp.`:''}</small></div>
+     <div class="bar"><i style="width:${pct}%;background:${pct>50?'var(--ok)':pct>25?'var(--warn)':'var(--danger)'}"></i></div>
+     <div class="row"><input id="plAmt" type="number" min="0" placeholder="valor" style="max-width:90px"><button data-play="dmg">Dano</button><button data-play="heal">Curar</button><button class="ghost" data-play="tmp">PV temp.</button></div>
+     ${S.feats.regeneracao&&diceAvg(S.feats.regeneracao.val)?`<div class="note">Regeneração: recupera ${S.feats.regeneracao.val} no início do turno (aplicado em "Próximo turno").</div>`:''}</div>
+   <div class="panel pl-box"><h3>Pontos de Poder</h3><div class="pl-big">${P.pp}<small> / ${pm}</small></div>
+     <div class="bar"><i style="width:${pm?Math.max(0,Math.min(100,P.pp/pm*100)):0}%;background:var(--accent)"></i></div>
+     <div class="row"><input id="plPP" type="number" min="0" placeholder="valor" style="max-width:90px"><button data-play="ppSpend">Gastar</button><button data-play="ppGain">Recuperar</button></div></div>
+   <div class="panel pl-box"><h3>Rolagem</h3><div class="row">${[['normal','Normal'],['vant','Vantagem'],['desv','Desvantagem']].map(([k,l])=>`<label class="chip"><input type="radio" name="rm" data-rollmode="${k}"${P.rollMode===k?' checked':''}>${l}</label>`).join('')}</div>
+     ${dis.length?`<div class="w">Condições ativas que dão desvantagem nos ataques: ${dis.join(', ')}.</div>`:''}
+     ${P.exh?`<div class="w">Exaustão ${P.exh}: −${exhPen()} em todo d20 (já descontado) e −${String(1.5*P.exh).replace('.',',')} m de deslocamento.</div>`:''}
+     <label class="f"><span>Exaustão</span><select id="plExh" data-playexh="1">${opt([0,1,2,3,4,5,6].map(x=>[x,x?`Nível ${x}`:'Nenhuma']),P.exh)}</select></label></div>
+  </div>
+  <div class="panel pl-box"><h3>Condições ativas</h3><div class="chips">${Object.keys(COND_INFO).filter(c=>c!=='Exaustão').map(c=>`<label class="chip" title="${esc(COND_INFO[c][1])}"><input type="checkbox" data-pcond="${esc(c)}"${P.conds.includes(c)?' checked':''}${S.condImm.includes(c)?' disabled':''}>${esc(c)}${S.condImm.includes(c)?' (imune)':''}</label>`).join('')}</div>
+    ${P.conds.length?`<div class="pl-conds">${P.conds.map(c=>`<div><b>${esc(c)}:</b> ${esc(COND_INFO[c][1])}</div>`).join('')}</div>`:''}</div>
+  <div class="pl-grid2">
+   <div class="panel pl-box"><h3>Ações</h3>
+    ${S.multi.length?`<button class="primary" data-play="multi" style="margin-bottom:8px">Ataques Múltiplos (${S.multi.map(m=>{const a=S.attacks.find(x=>x.id===m.atk);return a?`${m.times}× ${a.name}`:''}).filter(Boolean).join(', ')})</button>`:''}
+    ${S.attacks.map(a=>{const c=R.aCalc[a.id];return`<div class="pl-row"><div><b>${esc(a.name)}</b> <span class="note">${sg(c.bonus)} · ${c.dn}d${c.die}${c.fl?sg(c.fl):''} ${esc(a.type)}</span></div><div class="row"><button class="small" data-patk="${a.id}">Atacar</button><button class="small ghost" data-pdmg="${a.id}">Dano</button></div></div>`}).join('')||'<p class="note">Sem ataques.</p>'}
+   </div>
+   <div class="panel pl-box"><h3>Técnicas</h3>
+    ${S.techs.map(t=>{const c=R.tc[t.id];const st=techStatus(t);const noPP=(+t.pp||0)>P.pp;return`<div class="pl-row${st.ok&&!noPP?'':' off'}"><div><b>${esc(t.name)}</b> <span class="note">${t.pp?`${t.pp} PP · `:''}${st.lab} · ${{poderosa:'Ação Poderosa',bonus:'Ação Bônus',reacao:'Reação'}[t.act]}${t.form==='area'?` · CD ${cd} ${ATTR_NAME[t.saveAttr]}`:''}${(t.conds||[]).length?` · ${t.conds.join(', ')}`:''}</span></div>
+      <div class="row"><button class="small" data-ptech="${t.id}"${st.ok&&!noPP?'':' disabled'}>Usar</button>${!st.ok?`<button class="small ghost" data-precharge="${t.id}">Recuperar</button>`:''}</div></div>`}).join('')||'<p class="note">Sem técnicas.</p>'}
+    ${S.techs.some(t=>/^rec/.test(t.use))?`<p class="note">Recargas são roladas automaticamente em "Próximo turno".</p>`:''}
+   </div>
+  </div>
+  <div class="pl-grid2">
+   <div class="panel pl-box"><h3>Salvaguardas</h3><div class="row">${ATTRS.map(a=>`<button class="small" data-psave="${a}">${a} ${sg(saveB(a))}</button>`).join('')}</div>
+    <h3 style="margin-top:12px">Perícias</h3><div class="row">${SKILLS.map(([n,a])=>[n,a,mod(S.attrs[a])+prof*(S.skills[n]||0)]).filter(x=>S.skills[x[0]]).map(([n,a,b])=>`<button class="small" data-pskill="${esc(n)}|${b}">${esc(n)} ${sg(b)}</button>`).join('')||'<span class="note">Nenhuma perícia proficiente.</span>'}
+    <button class="small ghost" data-pskill="Percepção (sem prof.)|${mod(S.attrs.VON)}">Percepção ${sg(mod(S.attrs.VON))}</button></div></div>
+   <div class="panel pl-box"><h3>Registro de rolagens <button class="small ghost" data-play="clearlog" style="float:right">Limpar</button></h3>
+    <div class="pl-log">${P.log.map(l=>`<div class="${l.cls}"><span class="note">R${l.r}</span> ${esc(l.t)} <b>${esc(l.v)}</b></div>`).join('')||'<p class="note">As rolagens aparecem aqui.</p>'}</div></div>
+  </div></div>`;
+  $('#editor').innerHTML=h;
+}
+function playClick(b){const P=S.play;const R=lastR||compute();const prof=basicProf(R);const amt=()=>Math.max(0,+(($('#plAmt')||{}).value)||0);
+  const a=b.dataset;
+  if(a.play==='init'){const r=d20();P.init=r.v+mod(S.attrs.DES)-exhPen();plog('Iniciativa',`${P.init} (d20 ${r.txt} ${sg(mod(S.attrs.DES))})`)}
+  else if(a.play==='turn'){P.round++;const msgs=[];S.techs.filter(t=>/^rec/.test(t.use)&&P.spent[t.id]).forEach(t=>{const v=rollD(1,6).s;const need=t.use==='rec56'?5:t.use==='rec46'?4:6;if(v>=need){delete P.spent[t.id];msgs.push(`${t.name} recarregou (d6 ${v})`)}else msgs.push(`${t.name} não recarregou (d6 ${v})`)});
+    const rg=S.feats.regeneracao?diceAvg(S.feats.regeneracao.val):0;if(rg&&P.hp>=1&&P.hp<R.hp){P.hp=Math.min(R.hp,P.hp+Math.floor(rg));msgs.push(`Regeneração +${Math.floor(rg)} PV`)}
+    plog(`Início da rodada ${P.round}`,msgs.join(' · ')||'—')}
+  else if(a.play==='reset'){resetPlay();plog('Encontro reiniciado','PV, PP, usos e condições restaurados')}
+  else if(a.play==='dmg'){let v=amt();const fromTmp=Math.min(P.tmp,v);P.tmp-=fromTmp;v-=fromTmp;P.hp=Math.max(0,P.hp-v);plog('Recebeu dano',`${amt()}${fromTmp?` (${fromTmp} nos PV temp.)`:''} → ${P.hp} PV`,'fail')}
+  else if(a.play==='heal'){P.hp=Math.min(R.hp,P.hp+amt());plog('Curou',`${amt()} → ${P.hp} PV`)}
+  else if(a.play==='tmp'){P.tmp=Math.max(P.tmp,amt());plog('PV temporários',`${P.tmp}`)}
+  else if(a.play==='ppSpend'){const v=Math.max(0,+(($('#plPP')||{}).value)||0);P.pp=Math.max(0,P.pp-v);plog('Gastou PP',`${v} → ${P.pp}`)}
+  else if(a.play==='ppGain'){const v=Math.max(0,+(($('#plPP')||{}).value)||0);P.pp=Math.min(ppMax(),P.pp+v);plog('Recuperou PP',`${v} → ${P.pp}`)}
+  else if(a.play==='clearlog'){P.log=[]}
+  else if(a.play==='multi'){S.multi.forEach(m=>{const at=S.attacks.find(x=>x.id===m.atk);if(!at)return;const c=R.aCalc[at.id];for(let i=0;i<(+m.times||0);i++){const r=rollAttack(at.name,c.bonus);rollDamage(at.name,c.dn,c.die,c.fl,at.type,r.crit)}})}
+  else if(a.patk){const at=S.attacks.find(x=>x.id===a.patk);const c=R.aCalc[at.id];const r=rollAttack(at.name,c.bonus);rollDamage(at.name,c.dn,c.die,c.fl,at.type,r.crit)}
+  else if(a.pdmg){const at=S.attacks.find(x=>x.id===a.pdmg);const c=R.aCalc[at.id];rollDamage(at.name,c.dn,c.die,c.fl,at.type,false)}
+  else if(a.ptech){const t=S.techs.find(x=>x.id===a.ptech);const c=R.tc[t.id];P.pp-=(+t.pp||0);P.uses[t.id]=(P.uses[t.id]||0)+1;if(/^rec/.test(t.use))P.spent[t.id]=true;
+    plog(`${t.name} usada`,`${t.pp?`−${t.pp} PP (restam ${P.pp})`:'sem custo'}`);
+    const condTxt=(t.conds||[]).length?` · Salvaguarda de ${ATTR_NAME[t.condSave||'CON']} CD ${cdValue(prof)} ou: ${t.conds.join(', ')}`:'';
+    if(t.form==='ataque'){const r=rollAttack(t.name,c.bonus);if(c.dn)rollDamage(t.name,c.dn,c.die,c.fl,t.type,r.crit);if(condTxt)plog(t.name+': efeito',condTxt.slice(3))}
+    else if(t.form==='area'){if(c.dn){const dmg=rollDamage(t.name,c.dn,c.die,c.fl,t.type,false);plog(`${t.name}: área`,`Salvaguarda de ${ATTR_NAME[t.saveAttr]} CD ${cdValue(prof)} · falha ${dmg}, sucesso ${Math.floor(dmg/2)}${condTxt}`)}}
+    else if(condTxt||t.effect)plog(`${t.name}: efeito`,(condTxt?condTxt.slice(3):'')+(t.effect?` ${t.effect.slice(0,120)}`:''))}
+  else if(a.precharge){delete P.spent[a.precharge];delete P.uses[a.precharge];plog('Recuperada manualmente',S.techs.find(x=>x.id===a.precharge).name)}
+  else if(a.psave){const r=d20();const bn=mod(S.attrs[a.psave])+(S.saves.includes(a.psave)?prof:0);const auto=(['FOR','DES'].includes(a.psave)&&P.conds.some(c=>['Atordoado','Paralisado','Inconsciente','Enfraquecido'].includes(c)))||P.conds.includes('Enfraquecido');plog(`Salvaguarda de ${ATTR_NAME[a.psave]}`,auto?'falha automática (condição)':`${r.v+bn-exhPen()} (d20 ${r.txt} ${sg(bn)}${exhPen()?` −${exhPen()}`:''})`,auto?'fail':'')}
+  else if(a.pskill){const [n,bn]=a.pskill.split('|');const r=d20();plog(`Teste de ${n}`,`${r.v+(+bn)-exhPen()} (d20 ${r.txt} ${sg(+bn)}${exhPen()?` −${exhPen()}`:''})`)}
+  else return false;
+  store.set('opEnemyDraft',S);renderPlay();return true}
 
 $('#presetSel').innerHTML=`<option value="">Carregar exemplo do Manual…</option>`+PRESETS.map((p,i)=>`<option value="${i}">${esc(p[0])}</option>`).join('');
 renderEditor();
