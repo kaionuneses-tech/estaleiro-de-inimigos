@@ -22,6 +22,10 @@ Segue o passo a passo de *Criando um Inimigo* (Guia do Narrador 2.0, cap. 3.13):
 
 Controle de PV (com PV temporários), PP, condições ativas com os efeitos, Exaustão, usos por dia e recargas (roladas a cada turno), rolagens de iniciativa, ataque, dano, salvaguardas e perícias com vantagem/desvantagem, e registro das rolagens.
 
+## Gerenciador de combate
+
+Várias fichas em jogo ao mesmo tempo. Adicione PdNs da ficha em edição, da biblioteca ou dos exemplos (com quantidade e numeração automática, ex.: Soldado 1, 2, 3) e jogadores com PV e CR. Cada PdN guarda seus próprios PV, PP, condições, usos e recargas. Inclui ordem de iniciativa, controle de turnos e rodadas (recargas e regeneração rodam no início do turno de cada PdN), dano e cura em grupo (com opção de metade para quem passou na Salvaguarda) e um registro único do combate.
+
 ## Como usar
 
 Abra o `index.html` no navegador. Não precisa instalar nada.

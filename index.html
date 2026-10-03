@@ -162,6 +162,27 @@ table.ref tr.hf td{font-weight:700;outline:1.5px solid var(--ink);outline-offset
 .pl-log{display:grid;gap:3px;font-size:12.5px;max-height:320px;overflow:auto}
 .pl-log .crit{color:var(--ok)}.pl-log .fail{color:var(--danger)}
 button:disabled{opacity:.5;cursor:not-allowed}
+.cb{display:grid;gap:12px}
+.cb-bar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;padding:12px 14px}
+.cb-status{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+.cb-round{font-family:var(--display);font-weight:400;font-size:1.8rem;line-height:1}
+.cb-grid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:12px;align-items:start}
+@media (max-width:820px){.cb-grid{grid-template-columns:1fr}}
+.cb-side{display:grid;gap:12px}
+.cb-list{display:grid;gap:6px}
+.cb-card{display:grid;grid-template-columns:auto auto auto 1fr auto;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px;cursor:pointer}
+.cb-card:hover{border-color:var(--accent)}
+.cb-card.sel{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 30%,transparent)}
+.cb-card.cur{border-left:4px solid var(--brass)}
+.cb-card.down{opacity:.55}
+.cb-init{width:52px;text-align:center;padding:4px}
+.cb-pt{width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid var(--line)}
+.cb-pt0{display:grid;place-items:center;background:var(--surface2);font-family:var(--display);font-size:1.2rem}
+.cb-main{min-width:0;display:grid;gap:3px}
+.cb-name{font-weight:700;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.cb-act{display:flex;flex-direction:column;gap:4px}
+.pill.bad{background:color-mix(in srgb,var(--danger) 16%,transparent);color:var(--danger)}
+@media (min-width:1051px){body.in-combat .layout{grid-template-columns:minmax(0,1fr) minmax(0,380px)}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -176,6 +197,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <div class="toolbar">
       <select id="presetSel" aria-label="Carregar exemplo"></select>
       <button id="btnPlay" class="primary">Modo de jogo</button>
+      <button id="btnCombat">Combate</button>
       <button id="btnNew">Nova ficha</button>
       <button id="btnLib">Biblioteca</button>
       <button id="btnIO">Importar / exportar</button>
@@ -732,7 +754,8 @@ function attrRef(){
     <p class="note">O Guia não define pontos de atributo por ND: só limita cada valor entre 1 e 30 (passo 5) e manda copiar criaturas parecidas do Manual. Esta faixa sai das 73 fichas do Manual dos Inimigos. Para comparar: um personagem de jogador começa com 15, 14, 13, 12, 10 e 8 (soma 72), e a espécie não leva nenhum valor acima de 20. Atributos não entram no cálculo do ND, mas mudam ataque, dano, CD, PV e salvaguardas.</p>
   </div>`}
 function renderEditor(){
-  $('#btnPlay').textContent=playMode?'Voltar à edição':'Modo de jogo';$('#result').hidden=playMode;
+  $('#btnPlay').textContent=playMode?'Voltar à edição':'Modo de jogo';$('#btnCombat').textContent=combatMode?'Sair do combate':'Combate';$('#result').hidden=playMode||combatMode;document.body.classList.toggle('in-combat',combatMode);
+  if(combatMode){refresh();if(!combat.list.length){addNpc(JSON.parse(JSON.stringify(S)),1)}renderCombat();return}
   if(playMode){refresh();renderPlay();return}
   const e=[];
   e.push(mod$('id','Passos 1–6','Identidade','nome, tamanho, tipo e ND pretendido',`
@@ -1040,6 +1063,10 @@ document.addEventListener('input',ev=>{const el=ev.target;
   if(el.dataset.tcond!==undefined){const t=S.techs[+el.dataset.tcond];t.conds=t.conds||[];const v=el.dataset.val;const i=t.conds.indexOf(v);if(el.checked&&i<0)t.conds.push(v);if(!el.checked&&i>=0)t.conds.splice(i,1);renderEditor();return}
   if(el.dataset.profsk){const v=el.dataset.profsk;const i=S.prof.sk.indexOf(v);if(el.checked&&i<0){S.prof.sk.push(v);if(!S.skills[v])S.skills[v]=1}if(!el.checked&&i>=0){S.prof.sk.splice(i,1);if(S.skills[v]===1)delete S.skills[v]}renderEditor();return}
   if(el.dataset.proff){const v=el.dataset.proff;const i=S.prof.hide.indexOf(v);if(el.checked&&i>=0)S.prof.hide.splice(i,1);if(!el.checked&&i<0)S.prof.hide.push(v);renderEditor();return}
+  if(combatMode&&(el.dataset.rollmode||el.dataset.playexh||el.dataset.pcond)){const c=activeC();if(c&&c.kind==='npc')withCombatant(c,()=>{if(el.dataset.rollmode)S.play.rollMode=el.dataset.rollmode;if(el.dataset.playexh)S.play.exh=+el.value;if(el.dataset.pcond){const v=el.dataset.pcond;const i=S.play.conds.indexOf(v);if(el.checked&&i<0)S.play.conds.push(v);if(!el.checked&&i>=0)S.play.conds.splice(i,1);plog(el.checked?'Condição aplicada':'Condição removida',v)}});saveCombat();renderCombat();return}
+  if(el.dataset.cmark){const c=cById(el.dataset.cmark);c.mark=el.checked;saveCombat();renderCombat();return}
+  if(el.dataset.pccond){const c=cById(el.dataset.cid);c.conds=c.conds||[];const v=el.dataset.pccond;const i=c.conds.indexOf(v);if(el.checked&&i<0)c.conds.push(v);if(!el.checked&&i>=0)c.conds.splice(i,1);clog(c.name,el.checked?'Condição aplicada':'Condição removida',v);saveCombat();renderCombat();return}
+  if(el.dataset.cinit||el.dataset.pcf)return;
   if(el.dataset.rollmode){S.play.rollMode=el.dataset.rollmode;store.set('opEnemyDraft',S);renderPlay();return}
   if(el.dataset.playexh){S.play.exh=+el.value;store.set('opEnemyDraft',S);renderPlay();return}
   if(el.dataset.pcond){const v=el.dataset.pcond;const i=S.play.conds.indexOf(v);if(el.checked&&i<0)S.play.conds.push(v);if(!el.checked&&i>=0)S.play.conds.splice(i,1);plog(el.checked?'Condição aplicada':'Condição removida',v);store.set('opEnemyDraft',S);renderPlay();return}
@@ -1052,12 +1079,17 @@ document.addEventListener('input',ev=>{const el=ev.target;
     const a=atk({name:w.n,kind:w.kind,wt:w.wt,attr:w.attr,dn:w.dn,die:w.die,type:w.type,reach:w.reach,scale:w.scale});S.attacks.push(a);if(!S.multi.length)S.multi.push({atk:a.id,times:1});renderEditor();return}
   if(el.id==='presetSel'){const p=PRESETS[+el.value];if(p){S=Object.assign(blank(),p[1]());featFilter='';renderEditor();toast(`Exemplo carregado: ${S.name}`)}el.value='';return}
 });
+document.addEventListener('change',ev=>{const el=ev.target;if(!combatMode)return;
+  if(el.dataset.cinit){const c=cById(el.dataset.cinit);const v=el.value===''?null:+el.value;if(c.kind==='pc')c.init=v;else withCombatant(c,()=>{S.play.init=v});saveCombat();renderCombat();return}
+  if(el.dataset.pcf){const c=cById(el.dataset.cid);const f=el.dataset.pcf;c[f]=el.type==='number'?+el.value:el.value;saveCombat();renderCombat()}});
+document.addEventListener('click',ev=>{if(!combatMode)return;const card=ev.target.closest('[data-csel]');if(!card||ev.target.closest('button,input,select,label'))return;combat.sel=card.dataset.csel;saveCombat();renderCombat()});
 document.addEventListener('toggle',ev=>{const d=ev.target;if(d.dataset&&d.dataset.mod){openState[d.dataset.mod]=d.open;store.set('opEnemyOpen',openState)}
   if(d.dataset&&d.dataset.fg){openState['fg_'+d.dataset.fg]=d.open;store.set('opEnemyOpen',openState)}
   if(d.dataset&&d.dataset.log){openState.log=d.open;store.set('opEnemyOpen',openState)}
   if(d.dataset&&d.dataset.tab){openState.tab=d.open;store.set('opEnemyOpen',openState)}},true);
 document.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;
-  if(playMode&&S.play&&playClick(b))return;
+  if(combatMode&&b.id!=='btnCombat'&&b.id!=='btnPlay'){if(combatClick(b))return;const c=activeC();if(c&&c.kind==='npc'){let ok=false;withCombatant(c,()=>{ok=playClick(b)});if(ok){saveCombat();renderCombat();return}}}
+  else if(playMode&&S.play&&playClick(b))return;
   if(b.dataset.tab){openState.edTab=b.dataset.tab;store.set('opEnemyOpen',openState);renderEditor();return}
   if(b.dataset.del){const arr=b.dataset.del.split('.').reduce((o,k)=>o[k],S);const [rm]=arr.splice(+b.dataset.i,1);if(b.dataset.del==='attacks'){S.multi=S.multi.filter(m=>m.atk!==rm.id);if(S.leg.atk===rm.id)S.leg.atk=''}renderEditor();return}
   if(b.dataset.suggest!==undefined){const t=S.techs[+b.dataset.suggest];if(t.form==='area'){t.dn=[2,4,6,8,10,12,14][t.grau-1];t.die=6}else{t.dn=[2,4,6,8,10,12,15][t.grau-1];t.die=10}renderEditor();return}
@@ -1067,7 +1099,8 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b
     case'addMulti':S.multi.push({atk:S.attacks[0].id,times:1});renderEditor();break;
     case'addTech':S.techs.push(tech({name:'Nova Técnica',grau:1,pp:2}));renderEditor();break;
     case'addAux':S.techs.push(tech({name:'Nova Técnica Auxiliar',cat:'auxiliar',pp:2,act:'bonus',form:'aux',dn:0}));renderEditor();break;
-    case'btnPlay':playMode=!playMode;openState.play=playMode;store.set('opEnemyOpen',openState);if(playMode&&(!S.play||S.play.hp===undefined))resetPlay();renderEditor();window.scrollTo(0,0);break;
+    case'btnCombat':combatMode=!combatMode;playMode=false;openState.combat=combatMode;openState.play=false;store.set('opEnemyOpen',openState);renderEditor();window.scrollTo(0,0);break;
+    case'btnPlay':combatMode=false;openState.combat=false;playMode=!playMode;openState.play=playMode;store.set('opEnemyOpen',openState);if(playMode&&(!S.play||S.play.hp===undefined))resetPlay();renderEditor();window.scrollTo(0,0);break;
     case'addMP':S.fruit.mps.push({id:uid(),name:'Nova Manifestação',act:'passiva',pts:0,red:0,eff:'none',v:'',text:''});renderEditor();break;
     case'ptDel':S.portrait='';renderEditor();toast('Retrato removido');break;
     case'addCustom':S.custom.push({id:uid(),name:'Nova característica',slot:'asp',eff:'none',v:0,val:'',text:''});renderEditor();break;
@@ -1235,12 +1268,13 @@ function d20(){const P=S.play;const mode=P.rollMode;const a=rollD(1,20).s,b=roll
 function exhPen(){return 2*(+S.play.exh||0)}
 function ppMax(){return S.ppOverride!==''&&S.ppOverride!=null?+S.ppOverride:(lastR?lastR.finalPP:0)}
 function resetPlay(){const R=lastR||compute();S.play={hp:R.hp,tmp:0,pp:ppMax(),uses:{},spent:{},conds:[],exh:0,round:1,log:[],rollMode:'normal',init:null}}
-function plog(t,v,cls=''){S.play.log.unshift({t,v,cls,r:S.play.round});S.play.log=S.play.log.slice(0,40)}
+function plog(t,v,cls=''){S.play.log.unshift({t,v,cls,r:S.play.round});S.play.log=S.play.log.slice(0,40);if(combatMode&&typeof clog==='function')clog(S.name,t,v,cls)}
 function rollAttack(name,bonus){const r=d20();const pen=exhPen();const tot=r.v+bonus-pen;const crit=r.v===20,fumble=r.v===1;plog(`${name}: jogada de ataque`,`${tot} (d20 ${r.txt} ${sg(bonus)}${pen?` −${pen} exaustão`:''})${crit?' · CRÍTICO':fumble?' · falha crítica':''}`,crit?'crit':fumble?'fail':'');return{tot,crit}}
 function rollDamage(name,dn,die,fl,type,crit,mult=1){const n=crit?dn*2:dn;const r=rollD(n,die);const tot=Math.max(0,r.s+fl)*mult;plog(`${name}: dano${crit?' (crítico)':''}`,`${tot} ${type||''} (${n}d${die}${fl?sg(fl):''} → ${r.r.join('+')}${fl?sg(fl):''}${mult>1?` ×${mult}`:''})`,crit?'crit':'');return tot}
 function techStatus(t){const P=S.play;const u=P.uses[t.id]||0;if(t.use==='dia')return{ok:u<(+t.perDay||0),lab:`${(+t.perDay||0)-u}/${t.perDay} por dia`};
   if(/^rec/.test(t.use))return{ok:!P.spent[t.id],lab:P.spent[t.id]?`gasta · recarga ${t.use==='rec56'?'5–6':t.use==='rec46'?'4–6':'6'}`:'disponível'};return{ok:true,lab:'à vontade'}}
-function renderPlay(){
+function renderPlay(){if(combatMode){renderCombat();return}$('#editor').innerHTML=playHTML()}
+function playHTML(){
   const R=lastR||compute();if(!S.play||S.play.hp===undefined)resetPlay();const P=S.play;const prof=basicProf(R);
   const hpMax=R.hp,pm=ppMax();const pct=Math.max(0,Math.min(100,P.hp/hpMax*100));
   const dis=P.conds.filter(c=>DISADV_CONDS.includes(c));
@@ -1250,7 +1284,7 @@ function renderPlay(){
   <div class="panel pl-head">${S.portrait?`<img class="pl-portrait" src="${S.portrait}" alt="Retrato de ${esc(S.name)}">`:''}
     <div class="pl-id"><div class="step">${esc(ROLES[S.role]||'PdN')} · ND ${ND_LABELS[R.finalIdx]} · rodada ${P.round}</div><h2 class="pl-name">${esc(S.name)}</h2>
     <div class="row"><span class="pill teal">CR ${caReal()}</span><span class="pill teal">CD ${cd}</span><span class="pill teal">Desloc. ${String(Math.max(0,S.speed.walk-1.5*(+P.exh||0))).replace('.',',')} m</span>${P.init!=null?`<span class="pill">Iniciativa ${P.init}</span>`:''}</div></div>
-    <div class="row pl-btns"><button class="primary" data-play="init">Rolar iniciativa</button><button data-play="turn">Próximo turno</button><button class="ghost" data-play="reset">Reiniciar encontro</button></div></div>
+    <div class="row pl-btns"><button class="primary" data-play="init">Rolar iniciativa</button>${combatMode?'':'<button data-play="turn">Próximo turno</button>'}<button class="ghost" data-play="reset">Reiniciar encontro</button></div></div>
   <div class="pl-grid">
    <div class="panel pl-box"><h3>Pontos de Vida</h3><div class="pl-big"><span id="plHp">${fmt(P.hp)}</span><small> / ${fmt(hpMax)}${P.tmp?` · +${P.tmp} temp.`:''}</small></div>
      <div class="bar"><i style="width:${pct}%;background:${pct>50?'var(--ok)':pct>25?'var(--warn)':'var(--danger)'}"></i></div>
@@ -1284,7 +1318,7 @@ function renderPlay(){
    <div class="panel pl-box"><h3>Registro de rolagens <button class="small ghost" data-play="clearlog" style="float:right">Limpar</button></h3>
     <div class="pl-log">${P.log.map(l=>`<div class="${l.cls}"><span class="note">R${l.r}</span> ${esc(l.t)} <b>${esc(l.v)}</b></div>`).join('')||'<p class="note">As rolagens aparecem aqui.</p>'}</div></div>
   </div></div>`;
-  $('#editor').innerHTML=h;
+  return h;
 }
 function playClick(b){const P=S.play;const R=lastR||compute();const prof=basicProf(R);const amt=()=>Math.max(0,+(($('#plAmt')||{}).value)||0);
   const a=b.dataset;
@@ -1312,7 +1346,90 @@ function playClick(b){const P=S.play;const R=lastR||compute();const prof=basicPr
   else if(a.psave){const r=d20();const bn=mod(S.attrs[a.psave])+(S.saves.includes(a.psave)?prof:0);const auto=(['FOR','DES'].includes(a.psave)&&P.conds.some(c=>['Atordoado','Paralisado','Inconsciente','Enfraquecido'].includes(c)))||P.conds.includes('Enfraquecido');plog(`Salvaguarda de ${ATTR_NAME[a.psave]}`,auto?'falha automática (condição)':`${r.v+bn-exhPen()} (d20 ${r.txt} ${sg(bn)}${exhPen()?` −${exhPen()}`:''})`,auto?'fail':'')}
   else if(a.pskill){const [n,bn]=a.pskill.split('|');const r=d20();plog(`Teste de ${n}`,`${r.v+(+bn)-exhPen()} (d20 ${r.txt} ${sg(+bn)}${exhPen()?` −${exhPen()}`:''})`)}
   else return false;
-  store.set('opEnemyDraft',S);renderPlay();return true}
+  afterPlay();return true}
+function afterPlay(){if(combatMode)return;store.set('opEnemyDraft',S);renderPlay()}
+
+/* ============ GERENCIADOR DE COMBATE ============ */
+let combatMode=!!openState.combat;
+let combat=store.get('opCombat')||{list:[],cur:null,sel:null,round:1,log:[]};
+function saveCombat(){store.set('opCombat',combat)}
+function cById(id){return combat.list.find(c=>c.id===id)}
+function activeC(){return cById(combat.sel)||combat.list[0]||null}
+function withCombatant(c,fn){const s0=S,r0=lastR;S=Object.assign(blank(),c.data);c.data=S;lastR=compute();try{return fn()}finally{S=s0;lastR=r0}}
+function cInfo(c){if(c.kind==='pc')return{name:c.name,hp:+c.hp||0,hpMax:+c.hpMax||0,ca:c.ca,nd:'Jogador',dex:+c.dex||0,init:c.init,conds:c.conds||[],portrait:'',tmp:0};
+  return withCombatant(c,()=>({name:S.name,hp:S.play.hp,hpMax:lastR.hp,ca:caReal(),nd:'ND '+ND_LABELS[lastR.finalIdx],dex:mod(S.attrs.DES),init:S.play.init,conds:S.play.conds,portrait:S.portrait,tmp:S.play.tmp,role:S.role,pp:S.play.pp,ppMax:ppMax()}))}
+function cOrder(){const inf=Object.fromEntries(combat.list.map(c=>[c.id,cInfo(c)]));
+  const ord=[...combat.list].sort((a,b)=>{const ia=inf[a.id].init,ib=inf[b.id].init;const va=ia==null?-999:ia,vb=ib==null?-999:ib;return vb-va||inf[b.id].dex-inf[a.id].dex});return{ord,inf}}
+function clog(who,t,v,cls=''){combat.log.unshift({who,t,v,cls,r:combat.round});combat.log=combat.log.slice(0,80)}
+function addNpc(data,qty){qty=Math.max(1,Math.min(20,+qty||1));const base=String(data.name||'PdN').replace(/ \d+$/,'');
+  const existing=combat.list.filter(c=>c.kind==='npc'&&String(c.data.name).replace(/ \d+$/,'')===base);
+  const total=existing.length+qty;if(total>1&&existing.length===1&&existing[0].data.name===base)existing[0].data.name=base+' 1';
+  for(let i=0;i<qty;i++){const clone=JSON.parse(JSON.stringify(data));clone.play=null;clone.name=total>1?`${base} ${existing.length+i+1}`:base;
+    const c={id:uid(),kind:'npc',data:clone};withCombatant(c,resetPlay);combat.list.push(c);if(!combat.sel)combat.sel=c.id}
+  clog('Combate','Entrou no combate',`${qty}× ${base}`)}
+function addPc(){const n=($('#cbPcName')||{}).value||'Jogador';const c={id:uid(),kind:'pc',name:n,init:+(($('#cbPcInit')||{}).value)||null,hp:+(($('#cbPcHp')||{}).value)||30,hpMax:+(($('#cbPcHp')||{}).value)||30,ca:+(($('#cbPcCa')||{}).value)||15,conds:[],notes:''};
+  combat.list.push(c);combat.sel=c.id;clog('Combate','Jogador entrou',n)}
+function sourceOptions(){const lib=store.get('opEnemyLib')||[];return[['cur',`Ficha em edição: ${S.name}`],...lib.map((x,i)=>['lib'+i,`Biblioteca: ${x.name} (ND ${x.nd})`]),...PRESETS.map((p,i)=>['pre'+i,`Exemplo: ${p[0]}`])]}
+function sourceData(v){if(v==='cur')return JSON.parse(JSON.stringify(S));if(v.startsWith('lib')){const lib=store.get('opEnemyLib')||[];const e=lib[+v.slice(3)];return e?Object.assign(blank(),e.data):null}
+  if(v.startsWith('pre')){const p=PRESETS[+v.slice(3)];return p?Object.assign(blank(),p[1]()):null}return null}
+function startTurn(c){if(c.kind!=='npc')return;withCombatant(c,()=>{playClick({dataset:{play:'turn'}})})}
+function nextTurn(){const {ord}=cOrder();if(!ord.length)return;let i=ord.findIndex(c=>c.id===combat.cur);
+  if(i<0){combat.cur=ord[0].id}else{i++;if(i>=ord.length){i=0;combat.round++;clog('Combate',`Rodada ${combat.round}`,'—')}combat.cur=ord[i].id}
+  const c=cById(combat.cur);combat.sel=c.id;if(c.kind==='npc')startTurn(c);else clog(c.name,'Início do turno','—')}
+function rollAllInit(){combat.list.forEach(c=>{if(c.kind!=='npc')return;withCombatant(c,()=>playClick({dataset:{play:'init'}}))});const {ord}=cOrder();combat.cur=null;nextTurnTo(ord[0]);}
+function nextTurnTo(c){if(!c)return;combat.cur=c.id;combat.sel=c.id;clog(c.kind==='npc'?c.data.name:c.name,'Começa o combate','maior iniciativa')}
+function massApply(kind){const amt=Math.max(0,+(($('#cbAmt')||{}).value)||0);const marked=combat.list.filter(c=>c.mark);if(!marked.length){toast('Marque os alvos na lista primeiro.');return}if(!amt){toast('Informe o valor.');return}
+  marked.forEach(c=>{const v=kind==='half'?Math.floor(amt/2):amt;
+    if(c.kind==='pc'){if(kind==='heal')c.hp=Math.min(+c.hpMax,+c.hp+v);else c.hp=Math.max(0,+c.hp-v);clog(c.name,kind==='heal'?'Curou':'Recebeu dano',`${v} → ${c.hp} PV`,kind==='heal'?'':'fail');return}
+    withCombatant(c,()=>{const P=S.play;if(kind==='heal'){P.hp=Math.min(lastR.hp,P.hp+v);plog('Curou',`${v} → ${P.hp} PV`)}else{let d=v;const t=Math.min(P.tmp,d);P.tmp-=t;d-=t;P.hp=Math.max(0,P.hp-d);plog('Recebeu dano',`${v}${t?` (${t} nos PV temp.)`:''} → ${P.hp} PV`,'fail')}})});
+  toast(`${kind==='heal'?'Cura':'Dano'} aplicado a ${marked.length} alvo${marked.length>1?'s':''}`)}
+function pcPanel(c){return`<div class="play"><div class="panel pl-head"><div class="pl-id"><div class="step">Jogador</div><h2 class="pl-name">${esc(c.name)}</h2></div></div>
+  <div class="pl-grid"><div class="panel pl-box"><h3>Dados do jogador</h3>
+    <div class="grid">${fld('Nome',`<input data-pcf="name" data-cid="${c.id}" id="pcf_name_${c.id}" value="${esc(c.name)}">`)}${fld('PV atuais',`<input type="number" data-pcf="hp" data-cid="${c.id}" id="pcf_hp_${c.id}" value="${c.hp}">`)}${fld('PV máximos',`<input type="number" data-pcf="hpMax" data-cid="${c.id}" id="pcf_hpm_${c.id}" value="${c.hpMax}">`)}${fld('CR',`<input type="number" data-pcf="ca" data-cid="${c.id}" id="pcf_ca_${c.id}" value="${c.ca}">`)}${fld('Mod. de DES (desempate)',`<input type="number" data-pcf="dex" data-cid="${c.id}" id="pcf_dex_${c.id}" value="${c.dex||0}">`)}</div>
+    ${fld('Notas',`<textarea data-pcf="notes" data-cid="${c.id}" id="pcf_notes_${c.id}">${esc(c.notes||'')}</textarea>`)}</div></div>
+  <div class="panel pl-box"><h3>Condições ativas</h3><div class="chips">${Object.keys(COND_INFO).filter(x=>x!=='Exaustão').map(x=>`<label class="chip" title="${esc(COND_INFO[x][1])}"><input type="checkbox" data-pccond="${esc(x)}" data-cid="${c.id}"${(c.conds||[]).includes(x)?' checked':''}>${esc(x)}</label>`).join('')}</div>
+   ${(c.conds||[]).length?`<div class="pl-conds">${c.conds.map(x=>`<div><b>${esc(x)}:</b> ${esc(COND_INFO[x][1])}</div>`).join('')}</div>`:''}</div></div>`}
+function renderCombat(){
+  const {ord,inf}=cOrder();const cur=cById(combat.cur);const sel=activeC();if(sel)combat.sel=sel.id;
+  const hpCol=p=>p>50?'var(--ok)':p>25?'var(--warn)':'var(--danger)';
+  const cards=ord.map(c=>{const i=inf[c.id];const p=i.hpMax?Math.max(0,Math.min(100,i.hp/i.hpMax*100)):0;const down=i.hp<=0;
+    return`<div class="cb-card${c.id===combat.cur?' cur':''}${c.id===combat.sel?' sel':''}${down?' down':''}" data-csel="${c.id}">
+      <input type="checkbox" class="cb-mark" data-cmark="${c.id}" aria-label="Marcar ${esc(i.name)}"${c.mark?' checked':''}>
+      <input type="number" class="cb-init" data-cinit="${c.id}" id="ci_${c.id}" value="${i.init==null?'':i.init}" placeholder="Ini." aria-label="Iniciativa de ${esc(i.name)}">
+      ${i.portrait?`<img class="cb-pt" src="${i.portrait}" alt="">`:`<span class="cb-pt cb-pt0">${esc(i.name.slice(0,1))}</span>`}
+      <div class="cb-main"><div class="cb-name">${esc(i.name)} ${c.id===combat.cur?'<span class="pill">turno</span>':''}${down?'<span class="pill bad">caído</span>':''}</div>
+        <div class="note">${esc(i.nd)}${c.kind==='npc'&&i.role?` · ${esc(ROLES[i.role]||'')}`:''} · CR ${i.ca}${c.kind==='npc'?` · PP ${i.pp}/${i.ppMax}`:''}</div>
+        <div class="bar"><i style="width:${p}%;background:${hpCol(p)}"></i></div>
+        <div class="note"><b>${fmt(i.hp)}</b> / ${fmt(i.hpMax)} PV${i.tmp?` · +${i.tmp} temp.`:''}${i.conds.length?` · ${i.conds.map(esc).join(', ')}`:''}</div></div>
+      <div class="cb-act"><button class="small ghost" data-cdup="${c.id}" title="Duplicar">+1</button><button class="small ghost danger" data-cdel="${c.id}" title="Remover">×</button></div></div>`}).join('');
+  let panel='';if(sel){panel=sel.kind==='pc'?pcPanel(sel):withCombatant(sel,()=>playHTML())}
+  const h=`<div class="cb">
+   <div class="panel cb-bar"><div class="cb-status"><span class="step">Gerenciador de combate</span><b class="cb-round">Rodada ${combat.round}</b><span class="muted">${cur?`Turno de <b>${esc(inf[cur.id].name)}</b>`:'Role a iniciativa para começar'}</span></div>
+    <div class="row"><button data-cb="init">Rolar iniciativa dos PdNs</button><button class="primary" data-cb="next"${ord.length?'':' disabled'}>Próximo turno</button><button class="ghost danger" data-cb="end">Encerrar combate</button></div></div>
+   <div class="cb-grid"><div class="cb-side">
+    <div class="panel pl-box"><h3>Adicionar ao combate</h3>
+     <div class="row"><select id="cbSrc" style="flex:1 1 200px">${opt(sourceOptions(),'cur')}</select><input id="cbQty" type="number" min="1" max="20" value="1" style="max-width:64px" aria-label="Quantidade"><button class="primary" data-cb="add">Adicionar</button></div>
+     <details><summary class="note" style="cursor:pointer">Adicionar jogador</summary><div class="row" style="margin-top:6px"><input id="cbPcName" placeholder="Nome" style="flex:1 1 120px"><input id="cbPcInit" type="number" placeholder="Ini." style="max-width:64px"><input id="cbPcHp" type="number" placeholder="PV" style="max-width:70px"><input id="cbPcCa" type="number" placeholder="CR" style="max-width:60px"><button data-cb="addpc">Adicionar</button></div></details></div>
+    <div class="cb-list">${cards||'<p class="note">Nenhum combatente. Adicione PdNs ou jogadores acima.</p>'}</div>
+    ${combat.list.length?`<div class="panel pl-box"><h3>Ação em grupo · ${combat.list.filter(c=>c.mark).length} marcado(s)</h3><div class="row"><input id="cbAmt" type="number" min="0" placeholder="valor" style="max-width:90px"><button data-cmass="dmg">Dano</button><button data-cmass="half">Metade</button><button data-cmass="heal">Curar</button><button class="ghost small" data-cb="markall">Marcar todos</button><button class="ghost small" data-cb="unmark">Desmarcar</button></div><p class="note">Use "Metade" para quem passou na Salvaguarda de uma área.</p></div>`:''}
+    <div class="panel pl-box"><h3>Registro do combate</h3><div class="pl-log">${combat.log.slice(0,40).map(l=>`<div class="${l.cls}"><span class="note">R${l.r}</span> <b>${esc(l.who)}</b> · ${esc(l.t)} <b>${esc(l.v)}</b></div>`).join('')||'<p class="note">Vazio.</p>'}</div></div>
+   </div><div id="cbPlay">${panel||'<p class="note">Selecione um combatente.</p>'}</div></div></div>`;
+  $('#editor').innerHTML=h;
+  if(sel&&sel.kind==='npc'){withCombatant(sel,()=>renderBlock(lastR));const r=$('#statblock .row');if(r)r.remove()}else{$('#statblock').innerHTML=sel?`<p class="note">${esc(sel.name)} é um jogador: sem ficha de PdN.</p>`:''}
+  saveCombat()}
+function combatClick(b){const a=b.dataset;
+  if(a.cb==='add'){const d=sourceData($('#cbSrc').value);if(!d){toast('Não encontrei essa ficha.');return true}addNpc(d,$('#cbQty').value)}
+  else if(a.cb==='addpc')addPc();
+  else if(a.cb==='next')nextTurn();
+  else if(a.cb==='init')rollAllInit();
+  else if(a.cb==='markall')combat.list.forEach(c=>c.mark=true);
+  else if(a.cb==='unmark')combat.list.forEach(c=>c.mark=false);
+  else if(a.cb==='end'){openConfirm('Encerrar o combate? Todos os combatentes e o registro serão apagados. As fichas originais não mudam.','Encerrar combate',()=>{combat={list:[],cur:null,sel:null,round:1,log:[]};saveCombat();renderCombat()});return true}
+  else if(a.cmass)massApply(a.cmass);
+  else if(a.cdup){const c=cById(a.cdup);if(c.kind==='npc')addNpc(c.data,1);else{const n=JSON.parse(JSON.stringify(c));n.id=uid();n.name=c.name+' (cópia)';combat.list.push(n)}}
+  else if(a.cdel){const c=cById(a.cdel);combat.list=combat.list.filter(x=>x.id!==a.cdel);if(combat.sel===a.cdel)combat.sel=null;if(combat.cur===a.cdel)combat.cur=null;clog(c.kind==='npc'?c.data.name:c.name,'Saiu do combate','—')}
+  else return false;
+  saveCombat();renderCombat();return true}
 
 $('#presetSel').innerHTML=`<option value="">Carregar exemplo do Manual…</option>`+PRESETS.map((p,i)=>`<option value="${i}">${esc(p[0])}</option>`).join('');
 renderEditor();
